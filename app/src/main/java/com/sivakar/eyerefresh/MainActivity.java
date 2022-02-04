@@ -61,8 +61,9 @@ public class MainActivity extends AppCompatActivity {
 
         createNotificationChannel();
 
-        db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "eye-refresh-db").build();
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "eye-refresh-db")
+                .enableMultiInstanceInvalidation()
+                .build();
 
         // Set state on app start as that form the database
         db.stateLogDao().getLatestLogLiveData().observe(this, new Observer<StateLog>() {

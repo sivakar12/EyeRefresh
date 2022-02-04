@@ -22,8 +22,10 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         AsyncTask.execute(() -> {
-            AppDatabase db = Room.databaseBuilder(context,
-                    AppDatabase.class, "eye-refresh-db").build();
+            AppDatabase db =
+                    Room.databaseBuilder(context, AppDatabase.class, "eye-refresh-db")
+                            .enableMultiInstanceInvalidation()
+                            .build();
             db.stateLogDao().insert(StateLog.reminderSent());
         });
 
