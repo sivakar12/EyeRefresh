@@ -3,6 +3,7 @@ package com.sivakar.eyerefresh;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -27,10 +28,16 @@ public class AlarmReceiver extends BroadcastReceiver {
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
 
+            Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
+            appOpenIntent.putExtra("NOTIFICATION_ACTION", NotificationAction.OPEN_APP);
+            PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
+                    context.getApplicationContext(), 0,  appOpenIntent, 0);
+
             Notification notification = new NotificationCompat.Builder(context, "EyeRefresh")
                     .setContentTitle("Eye Refresh")
                     .setSmallIcon(R.drawable.ic_launcher_foreground)
                     .setContentText("Look at an object 20m away for 20 seconds")
+                    .setContentIntent(appOpenPendingIntent)
                     .setAutoCancel(true)
                     .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                     .build();
