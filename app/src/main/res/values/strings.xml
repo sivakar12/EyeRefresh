@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Eye Refresh</string>
+    <string name="notification_channel_id">EyeRefreshNotificationId</string>
 </resources>

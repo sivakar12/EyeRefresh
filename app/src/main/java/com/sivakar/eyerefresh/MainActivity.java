@@ -24,6 +24,18 @@ public class MainActivity extends AppCompatActivity {
         this.state = state;
         setFragmentBasedOnState();
     }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "EyeRefresh";
+            String description = "EyeRefresh";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(getString(R.string.notification_channel_id), name, importance);
+            channel.setDescription(description);
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             state = (State) savedInstanceState.getSerializable("state");
         }
+        createNotificationChannel();
         setFragmentBasedOnState();
 
     }
