@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EyeRefresh">
         <receiver
-            android:name=".AlarmReceiver"
+            android:name=".CommonBroadcastReceiver"
             android:enabled="true"
             android:exported="true"></receiver>
 

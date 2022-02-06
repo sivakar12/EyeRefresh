@@ -5,18 +5,12 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.room.Room;
 
-import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
 import com.sivakar.eyerefresh.fragments.PausedStateFragment;
 import com.sivakar.eyerefresh.fragments.RefreshHappeningStateFragment;
@@ -101,50 +95,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSchedule(View view) {
-        setReminder();
+        Common.setReminder(getApplicationContext(), db, false);
     }
-
-    private void setReminder() {
-        AlarmManager alarmManager =
-                (AlarmManager) getApplicationContext()
-                        .getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
-
-        // It is 20 seconds instead of twenty minutes for testing purposes
-        long alarmTime = System.currentTimeMillis() + 5 * 1000;
-        alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
-
-        AsyncTask.execute(()-> {
-            try {
-                db.stateLogDao().insert(StateLog.reminderScheduled(alarmTime));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
     public void onClickCancel(View view) {
-        // TODO: Cancel the notification using the notification manager
-        AsyncTask.execute(() -> {
-            try {
-                db.stateLogDao().insert(StateLog.notScheduled());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        Common.pauseScheduling(getApplicationContext(), db);
     }
     public void onStartRefresh(View view) {
-        AsyncTask.execute(() -> {
-            try {
-                db.stateLogDao().insert(StateLog.refreshHappening());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        Common.startRefresh(getApplicationContext(), db);
     }
-
     public void onRefreshDone(View view) {
-        setReminder();
+        Common.setReminder(getApplicationContext(), db, false);
     }
 }
