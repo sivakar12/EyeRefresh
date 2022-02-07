@@ -1,17 +1,13 @@
 package com.sivakar.eyerefresh;
 
-import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.widget.Toast;
 
-import androidx.core.app.NotificationManagerCompat;
 import androidx.room.Room;
 
 import com.sivakar.eyerefresh.models.Action;
-import com.sivakar.eyerefresh.models.StateLog;
 
 public class CommonBroadcastReceiver extends BroadcastReceiver {
     private AppDatabase db;
@@ -23,12 +19,14 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
                             .enableMultiInstanceInvalidation()
                             .build();
         }
-        Action intentAction = Action.valueOf(intent.getStringExtra(Constant.NOTIFICATION_INTENT_ACTION_KEY));
-        if (!intent.getExtras().containsKey(Constant.NOTIFICATION_INTENT_ACTION_KEY)) {
+        Action intentAction = Action.valueOf(intent.getStringExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY));
+
+
+        if (!intent.getExtras().containsKey(Constants.NOTIFICATION_INTENT_ACTION_KEY)) {
             Toast.makeText(context, "DEBUG: Receiver intent empty", Toast.LENGTH_LONG).show();
             return;
         }
-        Toast.makeText(context, (String) intent.getExtras().get(Constant.NOTIFICATION_INTENT_ACTION_KEY), Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, (String) intent.getExtras().get(Constants.NOTIFICATION_INTENT_ACTION_KEY), Toast.LENGTH_SHORT).show();
         switch(intentAction) {
             case SEND_NOTIFICATION:
                 Common.sendNotification(context, db);
@@ -40,8 +38,16 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
                 Toast.makeText(context, "Pausing", Toast.LENGTH_LONG).show();
                 Common.pauseScheduling(context, db);
                 break;
+            case SEND_REFRESH_TIME_UP_NOTIFICATION:
+                Common.makeRefreshDoneNotification(context);
+                break;
+            case STOP_REFRESH_MIDWAY:
+                Common.handleRefreshMiss(context, db);
+                break;
+            case REFRESH_DONE:
+                Common.handleRefreshDone(context, db);
+                break;
         }
-
 
     }
 

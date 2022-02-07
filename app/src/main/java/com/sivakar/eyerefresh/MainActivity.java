@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
             CharSequence name = "EyeRefresh";
             String description = "EyeRefresh";
             int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(getString(R.string.notification_channel_id), name, importance);
+            NotificationChannel channel = new NotificationChannel(Constants.NOTIFICATION_CHANNEL_ID, name, importance);
             channel.setDescription(description);
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
@@ -104,6 +104,9 @@ public class MainActivity extends AppCompatActivity {
         Common.startRefresh(getApplicationContext(), db);
     }
     public void onRefreshDone(View view) {
-        Common.setReminder(getApplicationContext(), db, false);
+        Common.handleRefreshDone(getApplicationContext(), db);
+    }
+    public void onRefreshMiss(View view) {
+        Common.handleRefreshMiss(getApplicationContext(), db);
     }
 }

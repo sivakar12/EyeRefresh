@@ -12,17 +12,26 @@
 
         <TextView
             android:id="@+id/scheduled_label"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Refresh Happening"
             android:textAlignment="center"
-            android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Display3"
+            />
 
         <Button
             android:id="@+id/cancel_schedule_button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Done "
-            android:onClick="onRefreshDone"/>
+            android:layout_height="match_parent"
+            android:text="Done"
+            android:onClick="onRefreshDone"
+            />
+        <Button
+            android:id="@+id/missed_refresh_Button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Missed"
+            android:onClick="onRefreshMiss"
+            />
     </LinearLayout>
 </FrameLayout>
