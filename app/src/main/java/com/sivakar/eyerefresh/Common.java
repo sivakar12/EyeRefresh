@@ -16,21 +16,23 @@ import com.sivakar.eyerefresh.models.StateLog;
 
 
 public class Common {
-    private static PendingIntent lastAlarmPendingIntent;
+//    public static final long SNOOZE_DURATION_MILLIS = 2 * 60 * 1000;
+//    public static final long ALARM_INTERVAL_MILLIS = 20 * 60 * 1000;
+//    public static final long REFRESH_DURATION = 20 * 1000;
 
-    public static final long SNOOZE_DURATION_MILLIS = 2 * 60 * 1000;
-    public static final long ALARM_INTERVAL_MILLIS = 20 * 60 * 1000;
-    public static final long REFRESH_DURATION = 20 * 1000;
+    public static final long SNOOZE_DURATION_MILLIS = 5 * 1000;
+    public static final long ALARM_INTERVAL_MILLIS = 20 * 1000;
+    public static final long REFRESH_DURATION = 5 * 1000;
 
     public static void setReminder(Context context, AppDatabase db, boolean snooze) {
 
-        long alarmTime = System.currentTimeMillis() + (snooze ? SNOOZE_DURATION_MILLIS: ALARM_INTERVAL_MILLIS);
+        long alarmTime = System.currentTimeMillis() +
+                (snooze ? SNOOZE_DURATION_MILLIS: ALARM_INTERVAL_MILLIS);
 
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent = makePendingIntentForRefreshAlarm(context);
 
-        lastAlarmPendingIntent = pendingIntent;
         alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
 
         AsyncTask.execute(()-> {
@@ -71,7 +73,7 @@ public class Common {
         Notification notification = new NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Eye Refresh")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentText("Look at an object 20m away for 20 seconds")
+                .setContentText("Look at an object 20 feet away for 20 seconds")
                 .setContentIntent(appOpenPendingIntent)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .addAction(R.drawable.ic_launcher_foreground, "Snooze", snoozePendingIntent)

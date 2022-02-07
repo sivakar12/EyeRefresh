@@ -14,7 +14,7 @@
             android:id="@+id/scheduled_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Reminder Sent"
+            android:text="Time for refresh. Start timer and look at a distance 20 feet away for 20 seconds"
             android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
 
@@ -24,5 +24,17 @@
             android:layout_height="wrap_content"
             android:text="Start Refresh"
             android:onClick="onStartRefresh"/>
+        <Button
+            android:id="@+id/snooze_schedule_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Snooze"
+            android:onClick="onSnooze"/>
+        <Button
+            android:id="@+id/pause_schedule_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pauze"
+            android:onClick="onClickCancel"/>
     </LinearLayout>
 </FrameLayout>

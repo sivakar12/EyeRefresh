@@ -109,4 +109,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRefreshMiss(View view) {
         Common.handleRefreshMiss(getApplicationContext(), db);
     }
+    public void onSnooze(View view) {
+        Common.handleSnooze(getApplicationContext(), db);
+    }
 }

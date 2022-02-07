@@ -17,6 +17,13 @@
             android:text="Scheduled"
             android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/scheduled_state_time"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+            />
 
         <Button
             android:id="@+id/cancel_schedule_button"
