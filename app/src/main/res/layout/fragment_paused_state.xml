@@ -10,7 +10,7 @@
         android:id="@+id/paused_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Paused"
+        android:text="Reminders turned off"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Display3"
         app:layout_constraintBottom_toTopOf="@+id/schedule_button"

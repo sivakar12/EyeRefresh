@@ -12,9 +12,12 @@
         android:layout_height="wrap_content"
         android:text="Time for refresh. Start timer and look at a distance 20 feet away for 20 seconds"
         android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display2"
-        app:layout_constraintBottom_toTopOf="@+id/cancel_schedule_button"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        app:layout_constraintBottom_toTopOf="@id/barrier2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.496" />
 
     <Button
         android:id="@+id/cancel_schedule_button"
@@ -22,17 +25,16 @@
         android:layout_height="wrap_content"
         android:onClick="onStartRefresh"
         android:text="Start Refresh"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:layout_editor_absoluteY="683dp" />
 
     <Button
         android:id="@+id/snooze_schedule_button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:onClick="onSnooze"
         android:text="Snooze"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@+id/cancel_schedule_button"
         app:layout_constraintStart_toEndOf="@+id/pause_schedule_button" />
 
     <Button
@@ -40,9 +42,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="onClickCancel"
-        android:text="Pauze"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/snooze_schedule_button"
-        app:layout_constraintHorizontal_bias="0.5"
+        android:text="Pause"
+        app:layout_constraintBaseline_toBaselineOf="@+id/snooze_schedule_button"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="cancel_schedule_button,pause_schedule_button,snooze_schedule_button" />
 </androidx.constraintlayout.widget.ConstraintLayout>
