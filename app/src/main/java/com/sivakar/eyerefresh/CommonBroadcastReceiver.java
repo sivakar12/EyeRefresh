@@ -26,7 +26,7 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
             Toast.makeText(context, "DEBUG: Receiver intent empty", Toast.LENGTH_LONG).show();
             return;
         }
-        Toast.makeText(context, (String) intent.getExtras().get(Constants.NOTIFICATION_INTENT_ACTION_KEY), Toast.LENGTH_SHORT).show();
+        // Toast.makeText(context, (String) intent.getExtras().get(Constants.NOTIFICATION_INTENT_ACTION_KEY), Toast.LENGTH_SHORT).show();
         switch(intentAction) {
             case SEND_NOTIFICATION:
                 Common.sendNotification(context, db);
@@ -35,7 +35,6 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
                 Common.handleSnooze(context, db);
                 break;
             case PAUSE_SCHEDULING:
-                Toast.makeText(context, "Pausing", Toast.LENGTH_LONG).show();
                 Common.pauseScheduling(context, db);
                 break;
             case SEND_REFRESH_TIME_UP_NOTIFICATION:
