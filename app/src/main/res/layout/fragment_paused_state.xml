@@ -1,32 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.PausedStateFragment"
-    style="@style/Widget.EyeRefresh.Fragment">
-
-    <TextView
-        android:id="@+id/paused_label"
-        style="@style/Widget.EyeRefresh.StatusTextView"
+    style="@style/Widget.EyeRefresh.Fragment"
+    >
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:text="Reminders turned off"
-        app:layout_constraintBottom_toTopOf="@+id/schedule_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/schedule_button"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="onClickSchedule"
-        android:text="Turn On"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        style="@style/Widget.EyeRefresh.Button"
-        />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        style="?materialCardViewFilledStyle"
+        android:layout_margin="20dp"
+        >
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="20dp">
+            <TextView
+                android:id="@+id/state_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                style="?textAppearanceTitleLarge"
+                android:text="Paused"
+                />
+            <TextView
+                android:id="@+id/state_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/state_title"
+                style="?textAppearanceBodyLarge"
+                android:text="Turn on to receive periodic alarms"
+                />
+            <Button
+                android:id="@+id/schedule_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/state_label"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:onClick="onClickSchedule"
+                android:text="Turn On"
+                />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

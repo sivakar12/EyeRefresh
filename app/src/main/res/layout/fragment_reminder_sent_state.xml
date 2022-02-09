@@ -5,58 +5,73 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.ReminderSentStateFragment">
-
-    <TextView
-        android:id="@+id/state_label"
-        style="@style/Widget.EyeRefresh.StatusTextView"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:text="Time for refresh! Start timer and look at a distance 20 feet away for 20 seconds"
-        app:layout_constraintBottom_toTopOf="@id/button_barrier"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/start_refresh_button"
-        style="@style/Widget.EyeRefresh.Button"
-        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:onClick="onStartRefresh"
-        android:text="Start Timer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/snooze_schedule_button" />
+        android:layout_margin="20dp"
+        style="?materialCardViewFilledStyle"
+        >
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="20dp"
+            >
+            <TextView
+                android:id="@+id/state_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                style="?textAppearanceTitleLarge"
+                android:text="Time for refresh"
+                />
 
-    <Button
-        android:id="@+id/snooze_schedule_button"
-        style="@style/Widget.EyeRefresh.Button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="onSnooze"
-        android:text="Snooze"
-        app:layout_constraintBottom_toBottomOf="@+id/start_refresh_button"
-        app:layout_constraintEnd_toStartOf="@+id/start_refresh_button"
-        app:layout_constraintStart_toEndOf="@+id/pause_schedule_button"
-        app:layout_constraintTop_toTopOf="@+id/start_refresh_button" />
+            <TextView
+                android:id="@+id/state_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/state_title"
+                android:text="Start timer and look at a distance 20 feet away for 20 seconds"
+                />
 
-    <Button
-        android:id="@+id/pause_schedule_button"
-        style="@style/Widget.EyeRefresh.Button"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:onClick="onClickCancel"
-        android:text="Pause"
-        app:layout_constraintBottom_toBottomOf="@+id/snooze_schedule_button"
-        app:layout_constraintEnd_toStartOf="@+id/snooze_schedule_button"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/snooze_schedule_button" />
+            <Button
+                android:id="@+id/start_refresh_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/state_label"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:onClick="onStartRefresh"
+                android:text="Start Timer"
+                />
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/button_barrier"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="top"
-        app:constraint_referenced_ids="start_refresh_button,pause_schedule_button,snooze_schedule_button" />
+            <Button
+                android:id="@+id/snooze_schedule_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/state_label"
+                app:layout_constraintEnd_toStartOf="@id/start_refresh_button"
+                style="?attr/borderlessButtonStyle"
+                android:onClick="onSnooze"
+                android:text="Snooze"
+                />
+
+            <Button
+                android:id="@+id/pause_schedule_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/state_label"
+                app:layout_constraintEnd_toStartOf="@id/snooze_schedule_button"
+                style="?borderlessButtonStyle"
+                android:onClick="onClickCancel"
+                android:text="Pause"
+                />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+/>
 </androidx.constraintlayout.widget.ConstraintLayout>
