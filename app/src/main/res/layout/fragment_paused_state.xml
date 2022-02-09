@@ -4,16 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.PausedStateFragment">
+    tools:context=".fragments.PausedStateFragment"
+    style="@style/Widget.EyeRefresh.Fragment">
 
     <TextView
         android:id="@+id/paused_label"
+        style="@style/Widget.EyeRefresh.StatusTextView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:text="Reminders turned off"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display3"
         app:layout_constraintBottom_toTopOf="@+id/schedule_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -24,5 +26,7 @@
         android:text="Turn On"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        style="@style/Widget.EyeRefresh.Button"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

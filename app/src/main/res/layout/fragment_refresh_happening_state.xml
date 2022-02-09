@@ -8,61 +8,50 @@
 
 
     <TextView
-        android:id="@+id/scheduled_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/state_label"
+        style="@style/Widget.EyeRefresh.StatusTextView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:text="Look at something 20 feet away for 20 seconds"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
-        app:layout_constraintBottom_toTopOf="@+id/countdownSeconds"
+        app:layout_constraintBottom_toTopOf="@id/buttonsBarrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/missed_refresh_Button"
+        style="@style/Widget.EyeRefresh.Button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:onClick="onRefreshMiss"
         android:text="Missed"
-        app:layout_constraintBaseline_toBaselineOf="@+id/cancel_schedule_button"
-        app:layout_constraintEnd_toStartOf="@+id/cancel_schedule_button"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintBaseline_toBaselineOf="@+id/start_refresh_button"
+        app:layout_constraintEnd_toStartOf="@+id/start_refresh_button"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/cancel_schedule_button"
+        android:id="@+id/start_refresh_button"
+        style="@style/Widget.EyeRefresh.Button"
         android:layout_width="wrap_content"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
         android:onClick="onRefreshDone"
         android:text="Done"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/missed_refresh_Button"
-        tools:layout_editor_absoluteY="683dp" />
+        app:layout_constraintStart_toEndOf="@+id/missed_refresh_Button" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/buttons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="missed_refresh_Button,cancel_schedule_button" />
+        app:constraint_referenced_ids="missed_refresh_Button,start_refresh_button" />
 
-    <TextView
-        android:id="@+id/countdownSeconds"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="20"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-        app:layout_constraintBottom_toTopOf="@id/barrier3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scheduled_label" />
 
     <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/barrier3"
+        android:id="@+id/buttonsBarrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="cancel_schedule_button,missed_refresh_Button"
-        tools:layout_editor_absoluteY="683dp" />
+        app:constraint_referenced_ids="start_refresh_button,missed_refresh_Button"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

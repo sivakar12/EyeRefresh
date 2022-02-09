@@ -8,35 +8,26 @@
 
 
     <TextView
-        android:id="@+id/scheduled_label"
+        android:id="@+id/state_label"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:text="Next reminder at"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display2"
-        app:layout_constraintBottom_toTopOf="@+id/scheduled_state_time"
+        app:layout_constraintBottom_toTopOf="@+id/start_refresh_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        tools:layout_editor_absoluteX="0dp" />
 
-    <TextView
-        android:id="@+id/scheduled_state_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="22:12"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display4"
-        app:layout_constraintBottom_toTopOf="@+id/cancel_schedule_button"
-        app:layout_constraintTop_toBottomOf="@+id/scheduled_label"
-        tools:layout_editor_absoluteX="0dp" />
+        style="@style/Widget.EyeRefresh.StatusTextView"
+        />
 
     <Button
-        android:id="@+id/cancel_schedule_button"
+        android:id="@+id/start_refresh_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="onClickCancel"
         android:text="Turn Off"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="683dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        style="@style/Widget.EyeRefresh.Button"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

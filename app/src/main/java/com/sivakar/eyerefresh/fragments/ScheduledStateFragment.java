@@ -43,8 +43,8 @@ public class ScheduledStateFragment extends Fragment {
             long reminderTimestamp = db.stateLogDao().getLatestLog().reminderTimestamp;
             Format format = new SimpleDateFormat("HH:mm:ss"); // TODO: Have to be refactored
             String timeString = format.format(new Date(reminderTimestamp));
-            TextView scheduledTimeView = (TextView) inflatedView.findViewById(R.id.scheduled_state_time);
-            scheduledTimeView.setText(timeString);
+            TextView scheduledTimeView = (TextView) inflatedView.findViewById(R.id.state_label);
+            scheduledTimeView.setText("Next reminder at " + timeString);
         });
         return inflatedView;
     }
