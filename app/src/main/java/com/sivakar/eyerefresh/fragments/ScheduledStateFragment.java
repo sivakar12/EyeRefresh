@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.room.Room;
 
+import android.os.CountDownTimer;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,8 @@ import java.util.Date;
 
 public class ScheduledStateFragment extends Fragment {
 
-
+    private long reminderTimestamp;
+    private CountDownTimer timer;
     public ScheduledStateFragment() {
     }
 
@@ -30,7 +32,13 @@ public class ScheduledStateFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
+    private void updateTimeRemainingInView() {
+        long currentTime = System.currentTimeMillis();
+        long secondsRemaining = (reminderTimestamp - currentTime) / 1000;
+        String displayTime = String.format("%02d:%02d", secondsRemaining / 60, secondsRemaining % 60);
+        TextView scheduledTimeView = (TextView) getView().findViewById(R.id.state_label);
+        scheduledTimeView.setText("Next reminder in " + displayTime);
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -40,12 +48,36 @@ public class ScheduledStateFragment extends Fragment {
             AppDatabase db = Room.databaseBuilder(getContext(), AppDatabase.class, "eye-refresh-db")
                     .enableMultiInstanceInvalidation()
                     .build();
-            long reminderTimestamp = db.stateLogDao().getLatestLog().reminderTimestamp;
-            Format format = new SimpleDateFormat("HH:mm:ss"); // TODO: Have to be refactored
-            String timeString = format.format(new Date(reminderTimestamp));
-            TextView scheduledTimeView = (TextView) inflatedView.findViewById(R.id.state_label);
-            scheduledTimeView.setText("Next reminder at " + timeString);
+            reminderTimestamp = db.stateLogDao().getLatestLog().reminderTimestamp;
+            getActivity().runOnUiThread(() -> {
+                this.timer = new CountDownTimer(reminderTimestamp - System.currentTimeMillis(),1000) {
+                    @Override
+                    public void onTick(long l) {
+                        updateTimeRemainingInView();
+                    }
+
+                    @Override
+                    public void onFinish() {
+
+                    }
+                };
+                this.timer.start();
+            });
+
         });
         return inflatedView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (this.timer != null) {
+            this.timer.start();
+        }
+    }
+    @Override
+    public void onPause() {
+        super.onPause();
+        timer.cancel();
     }
 }
