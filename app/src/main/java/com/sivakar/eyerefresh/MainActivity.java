@@ -1,15 +1,20 @@
 package com.sivakar.eyerefresh;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.room.Room;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import com.sivakar.eyerefresh.fragments.PausedStateFragment;
@@ -111,5 +116,23 @@ public class MainActivity extends AppCompatActivity {
     }
     public void onSnooze(View view) {
         Common.handleSnooze(getApplicationContext(), db);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent openSettings = new Intent(getApplicationContext(), SettingsActivity.class);
+                startActivity(openSettings);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

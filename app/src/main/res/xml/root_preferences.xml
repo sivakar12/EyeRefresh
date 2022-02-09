@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Durations">
+        <ListPreference
+            app:key="reminder_interval"
+            app:title="Reminder Interval"
+            app:entries="@array/reminder_interval_entries"
+            app:entryValues="@array/reminder_interval_values"
+            app:defaultValue="1200"
+            app:useSimpleSummaryProvider="true"
+            />
+
+        <ListPreference
+            app:key="snooze_duration"
+            app:title="Snooze Duration"
+            app:entries="@array/snooze_duration_entries"
+            app:entryValues="@array/snooze_duration_values"
+            app:defaultValue="60"
+            app:useSimpleSummaryProvider="true"
+            />
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

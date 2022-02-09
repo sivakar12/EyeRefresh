@@ -52,7 +52,11 @@ public class Common {
 
     public static void sendNotification(Context context, AppDatabase db) {
         AsyncTask.execute(() -> {
-            db.stateLogDao().insert(StateLog.reminderSent());
+            try {
+                db.stateLogDao().insert(StateLog.reminderSent());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
 
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
