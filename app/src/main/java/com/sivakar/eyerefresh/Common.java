@@ -10,34 +10,41 @@ import android.os.AsyncTask;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.preference.PreferenceManager;
 
 import com.sivakar.eyerefresh.models.Action;
 import com.sivakar.eyerefresh.models.StateLog;
 
 
 public class Common {
-//    public static final long SNOOZE_DURATION_MILLIS = 2 * 60 * 1000;
-//    public static final long ALARM_INTERVAL_MILLIS = 20 * 60 * 1000;
-//    public static final long REFRESH_DURATION = 20 * 1000;
 
-    public static final long SNOOZE_DURATION_MILLIS = 5 * 1000;
-    public static final long ALARM_INTERVAL_MILLIS = 20 * 1000;
-    public static final long REFRESH_DURATION = 5 * 1000;
+    public static long getSettingValueInMilliseconds(Context context, String key) {
+        return 1000 * Long.parseLong(
+                PreferenceManager
+                        .getDefaultSharedPreferences(context)
+                        .getString(key, "0")
+        );
+    }
 
     public static void setReminder(Context context, AppDatabase db, boolean snooze) {
+        long alarmDuration;
+        if (snooze) {
+            alarmDuration = getSettingValueInMilliseconds(context, context.getString(R.string.snooze_duration_key));
+        } else {
+            alarmDuration = getSettingValueInMilliseconds(context, context.getString(R.string.reminder_interval_key));
+        }
 
-        long alarmTime = System.currentTimeMillis() +
-                (snooze ? SNOOZE_DURATION_MILLIS: ALARM_INTERVAL_MILLIS);
+        long alarmTimeStamp = alarmDuration + System.currentTimeMillis();
 
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent = makePendingIntentForRefreshAlarm(context);
 
-        alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTimeStamp, pendingIntent);
 
         AsyncTask.execute(()-> {
             try {
-                db.stateLogDao().insert(StateLog.reminderScheduled(alarmTime));
+                db.stateLogDao().insert(StateLog.reminderScheduled(alarmTimeStamp));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -151,7 +158,8 @@ public class Common {
             }
         });
 
-        long alarmTime = System.currentTimeMillis() + REFRESH_DURATION;
+        long alarmTime = System.currentTimeMillis() +
+                getSettingValueInMilliseconds(context, context.getString(R.string.refresh_duration_key));
 
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

@@ -2,16 +2,24 @@
 
     <PreferenceCategory app:title="Durations">
         <ListPreference
-            app:key="reminder_interval"
+            app:key="@string/reminder_interval_key"
             app:title="Reminder Interval"
             app:entries="@array/reminder_interval_entries"
             app:entryValues="@array/reminder_interval_values"
             app:defaultValue="1200"
             app:useSimpleSummaryProvider="true"
             />
+        <ListPreference
+            app:key="@string/refresh_duration_key"
+            app:title="Refresh Duration"
+            app:entries="@array/refresh_duration_entries"
+            app:entryValues="@array/refresh_duration_values"
+            app:defaultValue="20"
+            app:useSimpleSummaryProvider="true"
+            />
 
         <ListPreference
-            app:key="snooze_duration"
+            app:key="@string/snooze_duration_key"
             app:title="Snooze Duration"
             app:entries="@array/snooze_duration_entries"
             app:entryValues="@array/snooze_duration_values"
