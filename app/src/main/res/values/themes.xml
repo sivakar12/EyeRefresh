@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.EyeRefresh" parent="Theme.Material3.Light">
+    <style name="AppTheme" parent="Theme.Material3.Light">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
@@ -26,23 +26,5 @@
         <item name="colorOnSurfaceInverse">@color/md_theme_light_inverseOnSurface</item>
         <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_light_primaryInverse</item>
-    </style>
-
-    <style name="Widget.EyeRefresh.Button" parent="Widget.Material3.Button">
-        <item name="android:layout_margin">10dp</item>
-    </style>
-
-    <style name="Widget.EyeRefresh.StatusTextView" parent="Widget.MaterialComponents.TextView">
-        <item name="android:textColor">?colorOnSecondary</item>
-        <item name="android:background">?colorSecondary</item>
-        <item name="android:gravity">center</item>
-        <item name="layout_constraintDimensionRatio">w,1:1</item>
-        <item name="android:topLeftRadius">200dp</item>
-        <item name="android:layout_margin">30dp</item>
-        <item name="android:textAppearance">@style/TextAppearance.Material3.DisplayMedium</item>
-    </style>
-
-    <style name="Widget.EyeRefresh.Fragment" parent="">
-        <item name="backgroundColor">?colorSecondary</item>
     </style>
 </resources>
