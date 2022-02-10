@@ -7,5 +7,9 @@
         android:title="Settings"
         app:showAsAction="always"
         />
-
+    <item
+        android:id="@+id/view_logs"
+        android:title="Logs"
+        app:showAsAction="never"
+        />
 </menu>

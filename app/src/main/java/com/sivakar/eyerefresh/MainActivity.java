@@ -65,15 +65,18 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         // Set state on app start as that form the database
-        db.stateLogDao().getLatestLogLiveData().observe(this, new Observer<StateLog>() {
-            @Override
-            public void onChanged(StateLog stateLog) {
-                if (stateLog != null) {
-                    setState(stateLog.state);
-                } else {
-                    setState(State.NOT_SCHEDULED);
-                }
+        db.stateLogDao().getLatestLogLiveData().observe(this, stateLog -> {
+            if (stateLog == null) {
+                setState(State.NOT_SCHEDULED);
+                return;
             }
+
+            // If for some reason the last alarm didn't happen, reset the thing
+            if (stateLog.reminderTimestamp != 0
+                    && stateLog.reminderTimestamp < System.currentTimeMillis()) {
+                Common.pauseScheduling(getApplicationContext(), db);
+            }
+            setState(stateLog.state);
         });
 
         setFragmentBasedOnState();
@@ -131,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
                 Intent openSettings = new Intent(getApplicationContext(), SettingsActivity.class);
                 startActivity(openSettings);
                 return true;
+            case R.id.view_logs:
+                Intent openLogs = new Intent(getApplicationContext(), LogsActivity.class);
+                startActivity(openLogs);
             default:
                 return super.onOptionsItemSelected(item);
         }

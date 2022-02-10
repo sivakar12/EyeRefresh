@@ -78,6 +78,8 @@ public class ScheduledStateFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        timer.cancel();
+        if (this.timer != null) {
+            timer.cancel();
+        }
     }
 }
