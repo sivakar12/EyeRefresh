@@ -18,28 +18,37 @@ import com.sivakar.eyerefresh.models.StateLog;
 
 public class Common {
 
-    public static long getSettingValueInMilliseconds(Context context, String key) {
+    public static long getReminderIntervalInMillis(Context context) {
+        return 1000 * Long.parseLong(
+                PreferenceManager
+                    .getDefaultSharedPreferences(context)
+                    .getString("reminder_interval", "1200")
+        );
+    }
+    public static long getSnoozeDurationInMillis(Context context) {
         return 1000 * Long.parseLong(
                 PreferenceManager
                         .getDefaultSharedPreferences(context)
-                        .getString(key, "0")
+                        .getString("snooze_duration", "60")
+        );
+    }
+    public static long getRefreshDurationInMillis(Context context) {
+        return 1000 * Long.parseLong(
+                PreferenceManager
+                        .getDefaultSharedPreferences(context)
+                        .getString("refresh_duration", "20")
         );
     }
 
     public static void setReminder(Context context, AppDatabase db, boolean snooze) {
-        long alarmDuration;
-        if (snooze) {
-            alarmDuration = getSettingValueInMilliseconds(context, context.getString(R.string.snooze_duration_key));
-        } else {
-            alarmDuration = getSettingValueInMilliseconds(context, context.getString(R.string.reminder_interval_key));
-        }
+        long alarmDuration = snooze ? getSnoozeDurationInMillis(context) :
+                getReminderIntervalInMillis(context);
 
         long alarmTimeStamp = alarmDuration + System.currentTimeMillis();
 
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent = makePendingIntentForRefreshAlarm(context);
-
         alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTimeStamp, pendingIntent);
 
         AsyncTask.execute(()-> {
@@ -54,7 +63,7 @@ public class Common {
     private static PendingIntent makePendingIntentForRefreshAlarm(Context context) {
         Intent intent = new Intent(context, CommonBroadcastReceiver.class);
         intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_NOTIFICATION.name());
-        return PendingIntent.getBroadcast(context, 0, intent, 0);
+        return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     public static void sendNotification(Context context, AppDatabase db) {
@@ -69,17 +78,17 @@ public class Common {
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
         appOpenIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
-                context.getApplicationContext(), 0,  appOpenIntent, 0);
+                context.getApplicationContext(), 0,  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent snoozeIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         snoozeIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SNOOZE.name());
         PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 1, snoozeIntent, 0);
+                context.getApplicationContext(), 1, snoozeIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent pauseSchedulingIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         pauseSchedulingIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.PAUSE_SCHEDULING.name());
         PendingIntent pauseSchedulingPendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 2, pauseSchedulingIntent, 0);
+                context.getApplicationContext(), 2, pauseSchedulingIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Eye Refresh")
@@ -101,17 +110,17 @@ public class Common {
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
         appOpenIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
-                context.getApplicationContext(), 3,  appOpenIntent, 0);
+                context.getApplicationContext(), 3,  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent refreshMissedIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         refreshMissedIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.STOP_REFRESH_MIDWAY.name());
         PendingIntent refreshMissedPendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 4,  refreshMissedIntent, 0);
+                context.getApplicationContext(), 4,  refreshMissedIntent, PendingIntent.FLAG_IMMUTABLE);
         
         Intent refreshDoneIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         refreshDoneIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.STOP_REFRESH_MIDWAY.name());
         PendingIntent refreshDonePendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 5,  refreshDoneIntent, 0);
+                context.getApplicationContext(), 5,  refreshDoneIntent, PendingIntent.FLAG_IMMUTABLE);
         
         Notification notification = new NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Eye Refresh")
@@ -159,7 +168,7 @@ public class Common {
         });
 
         long alarmTime = System.currentTimeMillis() +
-                getSettingValueInMilliseconds(context, context.getString(R.string.refresh_duration_key));
+                getRefreshDurationInMillis(context);
 
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -174,7 +183,7 @@ public class Common {
     private static PendingIntent makePendingIntentForRefreshTimeUp(Context context) {
         Intent intent = new Intent(context, CommonBroadcastReceiver.class);
         intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_REFRESH_TIME_UP_NOTIFICATION.name());
-        return PendingIntent.getBroadcast(context, 7, intent, 0);
+        return PendingIntent.getBroadcast(context, 7, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     public static void handleRefreshMiss(Context context, AppDatabase db) {

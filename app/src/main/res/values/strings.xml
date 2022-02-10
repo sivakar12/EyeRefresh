@@ -2,7 +2,4 @@
     <string name="app_name">Eye Refresh</string>
     <string name="title_activity_settings">Settings</string>
 
-    <string name="reminder_interval_key">reminder_interval</string>
-    <string name="snooze_duration_key">snooze_duration</string>
-    <string name="refresh_duration_key">refresh_duration</string>
 </resources>
