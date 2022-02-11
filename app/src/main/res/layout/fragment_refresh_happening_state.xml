@@ -55,12 +55,18 @@
                 style="?attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/start_refresh_button"
-                app:layout_constraintTop_toBottomOf="@id/state_label"
                 android:onClick="onRefreshMiss"
                 android:text="Missed"
-                />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/start_refresh_button"
+                app:layout_constraintTop_toBottomOf="@id/state_label" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/group_action_buttons"
+                android:visibility="invisible"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="missed_refresh_button,start_refresh_button" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

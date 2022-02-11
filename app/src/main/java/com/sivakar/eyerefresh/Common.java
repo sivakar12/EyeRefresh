@@ -146,6 +146,8 @@ public class Common {
 
 
     public static void pauseScheduling(Context context, AppDatabase db) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        notificationManager.cancel(Constants.NOTIFICATION_REMINDER_ID);
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(makePendingIntentForRefreshAlarm(context));

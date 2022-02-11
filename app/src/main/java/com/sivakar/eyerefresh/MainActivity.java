@@ -72,10 +72,10 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // If for some reason the last alarm didn't happen, reset the thing
-            if (stateLog.reminderTimestamp != 0
-                    && stateLog.reminderTimestamp < System.currentTimeMillis()) {
-                Common.pauseScheduling(getApplicationContext(), db);
-            }
+//            if (stateLog.reminderTimestamp != 0
+//                    && stateLog.reminderTimestamp < System.currentTimeMillis()) {
+//                Common.pauseScheduling(getApplicationContext(), db);
+//            }
             setState(stateLog.state);
         });
 

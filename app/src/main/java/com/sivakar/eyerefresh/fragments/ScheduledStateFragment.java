@@ -13,13 +13,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sivakar.eyerefresh.AppDatabase;
-import com.sivakar.eyerefresh.MainActivity;
 import com.sivakar.eyerefresh.R;
-import com.sivakar.eyerefresh.models.State;
-
-import java.text.Format;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class ScheduledStateFragment extends Fragment {
 
@@ -43,7 +37,12 @@ public class ScheduledStateFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View inflatedView =  inflater.inflate(R.layout.fragment_scheduled_state, container, false);
+        return inflatedView;
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
         AsyncTask.execute(() -> {
             AppDatabase db = Room.databaseBuilder(getContext(), AppDatabase.class, "eye-refresh-db")
                     .enableMultiInstanceInvalidation()
@@ -65,15 +64,6 @@ public class ScheduledStateFragment extends Fragment {
             });
 
         });
-        return inflatedView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (this.timer != null) {
-            this.timer.start();
-        }
     }
     @Override
     public void onPause() {
