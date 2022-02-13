@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.ScheduledStateFragment">
+    tools:context=".fragments.ReminderScheduledStateFragment">
 
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 style="?textAppearanceTitleLarge"
-                android:text="Alarm scheduled"
+                android:text="Reminder scheduled"
                 />
             <TextView
                 android:id="@+id/state_label"

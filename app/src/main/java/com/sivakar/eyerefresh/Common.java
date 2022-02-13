@@ -156,7 +156,7 @@ public class Common {
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(makePendingIntentForRefreshAlarm(context));
         AsyncTask.execute(() -> {
-            StateLog stateLog = new StateLog(State.NOT_SCHEDULED);
+            StateLog stateLog = new StateLog(State.PAUSED);
             try {
                 db.stateLogDao().insert(stateLog);
             } catch (Exception e) {

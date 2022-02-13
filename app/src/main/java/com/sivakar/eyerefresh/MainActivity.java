@@ -20,12 +20,12 @@ import android.view.View;
 import com.sivakar.eyerefresh.fragments.PausedStateFragment;
 import com.sivakar.eyerefresh.fragments.RefreshHappeningStateFragment;
 import com.sivakar.eyerefresh.fragments.ReminderSentStateFragment;
-import com.sivakar.eyerefresh.fragments.ScheduledStateFragment;
+import com.sivakar.eyerefresh.fragments.ReminderScheduledStateFragment;
 import com.sivakar.eyerefresh.models.State;
 import com.sivakar.eyerefresh.models.StateLog;
 
 public class MainActivity extends AppCompatActivity {
-    private State state = State.NOT_SCHEDULED;
+    private State state = State.PAUSED;
     private AppDatabase db;
 
     public void setState(State state) {
@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         if (lastStateLog != null) {
             setState(lastStateLog.state);
         } else {
-            setState(State.NOT_SCHEDULED);
+            setState(State.PAUSED);
         }
     }
     @Override
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         // Set state on app start as that form the database
         db.stateLogDao().getLatestLogLiveData().observe(this, stateLog -> {
             if (stateLog == null) {
-                setState(State.NOT_SCHEDULED);
+                setState(State.PAUSED);
                 return;
             }
 
@@ -86,11 +86,11 @@ public class MainActivity extends AppCompatActivity {
     private void setFragmentBasedOnState() {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         switch (state) {
-            case NOT_SCHEDULED:
+            case PAUSED:
                 fragmentTransaction.replace(R.id.fragmentContainerView, new PausedStateFragment(), null);
                 break;
             case REMINDER_SCHEDULED:
-                fragmentTransaction.replace(R.id.fragmentContainerView, new ScheduledStateFragment(), null);
+                fragmentTransaction.replace(R.id.fragmentContainerView, new ReminderScheduledStateFragment(), null);
                 break;
             case REMINDER_SENT:
                 fragmentTransaction.replace(R.id.fragmentContainerView, new ReminderSentStateFragment(), null);
