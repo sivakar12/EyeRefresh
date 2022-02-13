@@ -15,8 +15,8 @@ public class StateLog {
     @ColumnInfo(name = "state")
     public State state;
 
-    @ColumnInfo(name = "causing_action")
-    public Action causingAction;
+    @ColumnInfo(name = "causing_event")
+    public Event causingEvent;
 
     @PrimaryKey
     @ColumnInfo(name = "timestamp")

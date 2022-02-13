@@ -25,6 +25,7 @@ There is this 20-20-20 rule to reduce eye strain for those spent a lot time in f
 - REMINDER_DUE
 - SNOOZE_REQUESTED
 - REFRESH_STARTED
+- REFRESH_TIME_UP
 - REFRESH_COMPLETED
 - REFRESH_CANCELLED
 - OPEN_APP (for opening app from notification through broadcast receiver)

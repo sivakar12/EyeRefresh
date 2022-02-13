@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sivakar.eyerefresh.AppDatabase;
-import com.sivakar.eyerefresh.Common;
+import com.sivakar.eyerefresh.EventHandlers;
 import com.sivakar.eyerefresh.R;
 
 public class RefreshHappeningStateFragment extends Fragment {
@@ -37,7 +37,7 @@ public class RefreshHappeningStateFragment extends Fragment {
                     .enableMultiInstanceInvalidation()
                     .build();
             long startTimestamp = db.stateLogDao().getLastRefreshHappeningEntry().timestamp;
-            long refreshDuration = Common.getRefreshDurationInMillis(getContext());
+            long refreshDuration = EventHandlers.getRefreshDurationInMillis(getContext());
             long timeTillRefreshFinish = refreshDuration - (System.currentTimeMillis() - startTimestamp);
             getActivity().runOnUiThread(() -> {
                 if (timeTillRefreshFinish < 0) {

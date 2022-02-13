@@ -20,7 +20,6 @@ import com.sivakar.eyerefresh.fragments.ReminderSentStateFragment;
 import com.sivakar.eyerefresh.fragments.ReminderScheduledStateFragment;
 import com.sivakar.eyerefresh.models.ReminderType;
 import com.sivakar.eyerefresh.models.State;
-import com.sivakar.eyerefresh.models.StateLog;
 
 public class MainActivity extends AppCompatActivity {
     private State state = State.PAUSED;
@@ -117,25 +116,25 @@ public class MainActivity extends AppCompatActivity {
 
     // Methods called from fragment's layouts. These are passed to EventHandlers 
     public void onClickScheduleFromPausedState(View view) {
-        Common.scheduleReminder(getApplicationContext(), db, ReminderType.NORMAL);
+        EventHandlers.scheduleReminder(getApplicationContext(), db, ReminderType.NORMAL);
     }
     public void onClickPauseFromReminderScheduledState(View view) {
-        Common.pauseScheduling(getApplicationContext(), db);
+        EventHandlers.pauseScheduling(getApplicationContext(), db);
     }
     public void onClickSnoozeFromReminderStentState(View view) {
-        Common.handleSnooze(getApplicationContext(), db);
+        EventHandlers.handleSnooze(getApplicationContext(), db);
     }
     public void onClickPauseFromReminderSentState(View view) {
-        Common.pauseScheduling(getApplicationContext(), db);
+        EventHandlers.pauseScheduling(getApplicationContext(), db);
     }
     public void onClickStartRefreshFromReminderSentState(View view) {
-        Common.startRefresh(getApplicationContext(), db);
+        EventHandlers.startRefresh(getApplicationContext(), db);
     }
     public void onClickRefreshDoneFromReminderHappeningState(View view) {
-        Common.handleRefreshDone(getApplicationContext(), db);
+        EventHandlers.handleRefreshDone(getApplicationContext(), db);
     }
     public void onClickRefreshMissFromReminderHappeningState(View view) {
-        Common.handleRefreshMiss(getApplicationContext(), db);
+        EventHandlers.handleRefreshMiss(getApplicationContext(), db);
     }
     
 

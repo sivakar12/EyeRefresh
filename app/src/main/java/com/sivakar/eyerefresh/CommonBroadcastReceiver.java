@@ -7,7 +7,7 @@ import android.widget.Toast;
 
 import androidx.room.Room;
 
-import com.sivakar.eyerefresh.models.Action;
+import com.sivakar.eyerefresh.models.Event;
 
 public class CommonBroadcastReceiver extends BroadcastReceiver {
     private AppDatabase db;
@@ -19,32 +19,32 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
                             .enableMultiInstanceInvalidation()
                             .build();
         }
-        Action intentAction = Action.valueOf(intent.getStringExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY));
+        Event intentEvent = Event.valueOf(intent.getStringExtra(Constants.INTENT_EVENT_KEY));
 
 
-        if (!intent.getExtras().containsKey(Constants.NOTIFICATION_INTENT_ACTION_KEY)) {
+        if (!intent.getExtras().containsKey(Constants.INTENT_EVENT_KEY)) {
             Toast.makeText(context, "DEBUG: Receiver intent empty", Toast.LENGTH_LONG).show();
             return;
         }
-        // Toast.makeText(context, (String) intent.getExtras().get(Constants.NOTIFICATION_INTENT_ACTION_KEY), Toast.LENGTH_SHORT).show();
-        switch(intentAction) {
-            case SEND_NOTIFICATION:
-                Common.sendRefreshDueNotification(context, db);
+
+        switch(intentEvent) {
+            case REMINDER_DUE:
+                EventHandlers.sendRefreshDueNotification(context, db);
                 break;
-            case SNOOZE:
-                Common.handleSnooze(context, db);
+            case SNOOZE_REQUESTED:
+                EventHandlers.handleSnooze(context, db);
                 break;
-            case PAUSE_SCHEDULING:
-                Common.pauseScheduling(context, db);
+            case SCHEDULING_PAUSED:
+                EventHandlers.pauseScheduling(context, db);
                 break;
-            case SEND_REFRESH_TIME_UP_NOTIFICATION:
-                Common.sendRefreshTimeUpNotification(context);
+            case REFRESH_TIME_UP:
+                EventHandlers.sendRefreshTimeUpNotification(context);
                 break;
-            case STOP_REFRESH_MIDWAY:
-                Common.handleRefreshMiss(context, db);
+            case REFRESH_CANCELLED:
+                EventHandlers.handleRefreshMiss(context, db);
                 break;
-            case REFRESH_DONE:
-                Common.handleRefreshDone(context, db);
+            case REFRESH_COMPLETED:
+                EventHandlers.handleRefreshDone(context, db);
                 break;
         }
 

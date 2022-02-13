@@ -12,14 +12,14 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 
-import com.sivakar.eyerefresh.models.Action;
+import com.sivakar.eyerefresh.models.Event;
 import com.sivakar.eyerefresh.models.NotificationType;
 import com.sivakar.eyerefresh.models.ReminderType;
 import com.sivakar.eyerefresh.models.State;
 import com.sivakar.eyerefresh.models.StateLog;
 
 
-public class Common {
+public class EventHandlers {
 
     public static long getReminderIntervalInMillis(Context context) {
         return 1000 * Long.parseLong(
@@ -45,13 +45,13 @@ public class Common {
 
     private static PendingIntent makePendingIntentForRefreshAlarm(Context context) {
         Intent intent = new Intent(context, CommonBroadcastReceiver.class);
-        intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_NOTIFICATION.name());
+        intent.putExtra(Constants.INTENT_EVENT_KEY, Event.REMINDER_DUE.name());
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
     private static PendingIntent makePendingIntentForRefreshTimeUp(Context context) {
         Intent intent = new Intent(context, CommonBroadcastReceiver.class);
-        intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_REFRESH_TIME_UP_NOTIFICATION.name());
+        intent.putExtra(Constants.INTENT_EVENT_KEY, Event.REFRESH_TIME_UP.name());
         return PendingIntent.getBroadcast(context, 7, intent, PendingIntent.FLAG_IMMUTABLE);
     }
     
@@ -67,17 +67,17 @@ public class Common {
         });
 
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
-        appOpenIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.OPEN_APP.name());
+        appOpenIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
                 context.getApplicationContext(), 0,  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent snoozeIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
-        snoozeIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SNOOZE.name());
+        snoozeIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.SNOOZE_REQUESTED.name());
         PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(
                 context.getApplicationContext(), 1, snoozeIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent pauseSchedulingIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
-        pauseSchedulingIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.PAUSE_SCHEDULING.name());
+        pauseSchedulingIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.SCHEDULING_PAUSED.name());
         PendingIntent pauseSchedulingPendingIntent = PendingIntent.getBroadcast(
                 context.getApplicationContext(), 2, pauseSchedulingIntent, PendingIntent.FLAG_IMMUTABLE);
 
@@ -99,17 +99,17 @@ public class Common {
 
     public static void sendRefreshTimeUpNotification(Context context) {
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
-        appOpenIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.OPEN_APP.name());
+        appOpenIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
                 context.getApplicationContext(), 3,  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
 
-        Intent refreshMissedIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
-        refreshMissedIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.STOP_REFRESH_MIDWAY.name());
+        Intent refreshCancelledIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
+        refreshCancelledIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.REFRESH_CANCELLED.name());
         PendingIntent refreshMissedPendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 4,  refreshMissedIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), 4,  refreshCancelledIntent, PendingIntent.FLAG_IMMUTABLE);
         
         Intent refreshDoneIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
-        refreshDoneIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.STOP_REFRESH_MIDWAY.name());
+        refreshDoneIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.REFRESH_COMPLETED.name());
         PendingIntent refreshDonePendingIntent = PendingIntent.getBroadcast(
                 context.getApplicationContext(), 5,  refreshDoneIntent, PendingIntent.FLAG_IMMUTABLE);
         
