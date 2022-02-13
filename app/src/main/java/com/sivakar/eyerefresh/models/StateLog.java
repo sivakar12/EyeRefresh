@@ -7,38 +7,9 @@ import androidx.room.PrimaryKey;
 
 @Entity
 public class StateLog {
-
-    public static StateLog reminderScheduled(long reminderTimeStamp) {
-        StateLog log = new StateLog();
-        log.reminderTimestamp = reminderTimeStamp;
-        log.timestamp = System.currentTimeMillis();
-        log.state = State.REMINDER_SCHEDULED;
-
-        return log;
-    }
-
-    public static StateLog notScheduled() {
-        StateLog log = new StateLog();
-        log.timestamp = System.currentTimeMillis();
-        log.state = State.NOT_SCHEDULED;
-
-        return log;
-    }
-
-    public static StateLog reminderSent() {
-        StateLog log = new StateLog();
-        log.timestamp = System.currentTimeMillis();
-        log.state = State.REMINDER_SENT;
-
-        return log;
-    }
-
-    public static StateLog refreshHappening() {
-        StateLog log = new StateLog();
-        log.timestamp = System.currentTimeMillis();
-        log.state = State.REFRESH_HAPPENING;
-
-        return log;
+    public StateLog(State state) {
+        this.state = state;
+        this.timestamp = System.currentTimeMillis();
     }
 
     @ColumnInfo(name = "state")

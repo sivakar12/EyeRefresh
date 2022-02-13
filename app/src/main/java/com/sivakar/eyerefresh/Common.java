@@ -13,6 +13,7 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 
 import com.sivakar.eyerefresh.models.Action;
+import com.sivakar.eyerefresh.models.State;
 import com.sivakar.eyerefresh.models.StateLog;
 
 
@@ -52,8 +53,10 @@ public class Common {
         alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTimeStamp, pendingIntent);
 
         AsyncTask.execute(()-> {
+            StateLog stateLog = new StateLog(State.REMINDER_SCHEDULED);
+            stateLog.reminderTimestamp = alarmTimeStamp;
             try {
-                db.stateLogDao().insert(StateLog.reminderScheduled(alarmTimeStamp));
+                db.stateLogDao().insert(stateLog);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -68,8 +71,9 @@ public class Common {
 
     public static void sendNotification(Context context, AppDatabase db) {
         AsyncTask.execute(() -> {
+            StateLog stateLog = new StateLog(State.REMINDER_SENT);
             try {
-                db.stateLogDao().insert(StateLog.reminderSent());
+                db.stateLogDao().insert(stateLog);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -152,8 +156,9 @@ public class Common {
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(makePendingIntentForRefreshAlarm(context));
         AsyncTask.execute(() -> {
+            StateLog stateLog = new StateLog(State.NOT_SCHEDULED);
             try {
-                db.stateLogDao().insert(StateLog.notScheduled());
+                db.stateLogDao().insert(stateLog);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -162,8 +167,9 @@ public class Common {
 
     public static void startRefresh(Context context, AppDatabase db) {
         AsyncTask.execute(() -> {
+            StateLog stateLog = new StateLog(State.REFRESH_HAPPENING);
             try {
-                db.stateLogDao().insert(StateLog.refreshHappening());
+                db.stateLogDao().insert(stateLog);
             } catch (Exception e) {
                 e.printStackTrace();
             }
