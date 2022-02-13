@@ -1,6 +1,9 @@
 # EyeRefresh
 
-There is this 20-20-20 rule to reduce eye strain for those spent a lot time in front of screen. Every twenty minutes, you take a break and look at something twenty feet away for twenty seconds. This is a app that sends timely reminders to do that.
+
+20-20-20 rule is a solution to reducing eye strain when one looks at screens for long. Every twenty minutes, you look at someting twenty feet away for twenty seconds.
+
+This is an Android app that sends reminders to do that. The reminders can be paused, snoozed, and acted upon. There is a timer for the twenty-second-refersh as well.
 
 ## Components
 
