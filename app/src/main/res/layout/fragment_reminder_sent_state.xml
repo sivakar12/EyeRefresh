@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@id/state_label"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:onClick="onStartRefresh"
+                android:onClick="onClickStartRefreshFromReminderSentState"
                 android:text="Start Timer"
                 />
 
@@ -56,7 +56,7 @@
                 app:layout_constraintTop_toBottomOf="@id/state_label"
                 app:layout_constraintEnd_toStartOf="@id/start_refresh_button"
                 style="?attr/borderlessButtonStyle"
-                android:onClick="onSnooze"
+                android:onClick="onClickSnoozeFromReminderStentState"
                 android:text="Snooze"
                 />
 
@@ -67,7 +67,7 @@
                 app:layout_constraintTop_toBottomOf="@id/state_label"
                 app:layout_constraintEnd_toStartOf="@id/snooze_schedule_button"
                 style="?borderlessButtonStyle"
-                android:onClick="onClickCancel"
+                android:onClick="onClickPauseFromReminderSentState"
                 android:text="Pause"
                 />
         </androidx.constraintlayout.widget.ConstraintLayout>

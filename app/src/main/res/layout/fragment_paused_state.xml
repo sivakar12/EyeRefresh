@@ -45,7 +45,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@id/state_label"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:onClick="onClickSchedule"
+                android:onClick="onClickScheduleFromPausedState"
                 android:text="Turn On"
                 />
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -26,10 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private State state = State.PAUSED;
     private AppDatabase db;
 
-    public void setState(State state) {
-        this.state = state;
-        setFragmentBasedOnState();
-    }
+    
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -41,82 +38,6 @@ public class MainActivity extends AppCompatActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-    }
-
-    private void setStateFromDatabase() {
-        StateLog lastStateLog = db.stateLogDao().getLatestLog();
-        if (lastStateLog != null) {
-            setState(lastStateLog.state);
-        } else {
-            setState(State.PAUSED);
-        }
-    }
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        createNotificationChannel();
-
-        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "eye-refresh-db")
-                .enableMultiInstanceInvalidation()
-                .build();
-
-        // Set state on app start as that form the database
-        db.stateLogDao().getLatestLogLiveData().observe(this, stateLog -> {
-            if (stateLog == null) {
-                setState(State.PAUSED);
-                return;
-            }
-
-            // If for some reason the last alarm didn't happen, reset the thing
-//            if (stateLog.reminderTimestamp != 0
-//                    && stateLog.reminderTimestamp < System.currentTimeMillis()) {
-//                Common.pauseScheduling(getApplicationContext(), db);
-//            }
-            setState(stateLog.state);
-        });
-
-        setFragmentBasedOnState();
-
-    }
-
-    private void setFragmentBasedOnState() {
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        switch (state) {
-            case PAUSED:
-                fragmentTransaction.replace(R.id.fragmentContainerView, new PausedStateFragment(), null);
-                break;
-            case REMINDER_SCHEDULED:
-                fragmentTransaction.replace(R.id.fragmentContainerView, new ReminderScheduledStateFragment(), null);
-                break;
-            case REMINDER_SENT:
-                fragmentTransaction.replace(R.id.fragmentContainerView, new ReminderSentStateFragment(), null);
-                break;
-            case REFRESH_HAPPENING:
-                fragmentTransaction.replace(R.id.fragmentContainerView, new RefreshHappeningStateFragment(), null);
-                break;
-        }
-        fragmentTransaction.commit();
-    }
-
-    public void onClickSchedule(View view) {
-        Common.scheduleReminder(getApplicationContext(), db, ReminderType.NORMAL);
-    }
-    public void onClickCancel(View view) {
-        Common.pauseScheduling(getApplicationContext(), db);
-    }
-    public void onStartRefresh(View view) {
-        Common.startRefresh(getApplicationContext(), db);
-    }
-    public void onRefreshDone(View view) {
-        Common.handleRefreshDone(getApplicationContext(), db);
-    }
-    public void onRefreshMiss(View view) {
-        Common.handleRefreshMiss(getApplicationContext(), db);
-    }
-    public void onSnooze(View view) {
-        Common.handleSnooze(getApplicationContext(), db);
     }
 
     @Override
@@ -139,4 +60,84 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    private void setFragmentBasedOnState() {
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        switch (state) {
+            case PAUSED:
+                fragmentTransaction.replace(R.id.fragmentContainerView, new PausedStateFragment(), null);
+                break;
+            case REMINDER_SCHEDULED:
+                fragmentTransaction.replace(R.id.fragmentContainerView, new ReminderScheduledStateFragment(), null);
+                break;
+            case REMINDER_SENT:
+                fragmentTransaction.replace(R.id.fragmentContainerView, new ReminderSentStateFragment(), null);
+                break;
+            case REFRESH_HAPPENING:
+                fragmentTransaction.replace(R.id.fragmentContainerView, new RefreshHappeningStateFragment(), null);
+                break;
+        }
+        fragmentTransaction.commit();
+    }
+
+    public void setState(State state) {
+        this.state = state;
+        setFragmentBasedOnState();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        createNotificationChannel();
+
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "eye-refresh-db")
+                .enableMultiInstanceInvalidation()
+                .build();
+
+        // Set state on app start as that form the database
+        db.stateLogDao().getLatestLogLiveData().observe(this, stateLog -> {
+            if (stateLog == null) {
+                setState(State.PAUSED);
+                return;
+            }
+
+            // If for some reason the last alarm didn't happen, reset the thing
+            // if (stateLog.reminderTimestamp != 0
+            //         && stateLog.reminderTimestamp < System.currentTimeMillis()) {
+            //     Common.pauseScheduling(getApplicationContext(), db);
+            // }
+            setState(stateLog.state);
+        });
+
+        setFragmentBasedOnState();
+
+    }
+
+    // Methods called from fragment's layouts. These are passed to EventHandlers 
+    public void onClickScheduleFromPausedState(View view) {
+        Common.scheduleReminder(getApplicationContext(), db, ReminderType.NORMAL);
+    }
+    public void onClickPauseFromReminderScheduledState(View view) {
+        Common.pauseScheduling(getApplicationContext(), db);
+    }
+    public void onClickSnoozeFromReminderStentState(View view) {
+        Common.handleSnooze(getApplicationContext(), db);
+    }
+    public void onClickPauseFromReminderSentState(View view) {
+        Common.pauseScheduling(getApplicationContext(), db);
+    }
+    public void onClickStartRefreshFromReminderSentState(View view) {
+        Common.startRefresh(getApplicationContext(), db);
+    }
+    public void onClickRefreshDoneFromReminderHappeningState(View view) {
+        Common.handleRefreshDone(getApplicationContext(), db);
+    }
+    public void onClickRefreshMissFromReminderHappeningState(View view) {
+        Common.handleRefreshMiss(getApplicationContext(), db);
+    }
+    
+
+    
 }
