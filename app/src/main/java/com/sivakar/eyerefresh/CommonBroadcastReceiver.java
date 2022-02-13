@@ -29,7 +29,7 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
         // Toast.makeText(context, (String) intent.getExtras().get(Constants.NOTIFICATION_INTENT_ACTION_KEY), Toast.LENGTH_SHORT).show();
         switch(intentAction) {
             case SEND_NOTIFICATION:
-                Common.sendNotification(context, db);
+                Common.sendRefreshDueNotification(context, db);
                 break;
             case SNOOZE:
                 Common.handleSnooze(context, db);
@@ -38,7 +38,7 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
                 Common.pauseScheduling(context, db);
                 break;
             case SEND_REFRESH_TIME_UP_NOTIFICATION:
-                Common.makeRefreshDoneNotification(context);
+                Common.sendRefreshTimeUpNotification(context);
                 break;
             case STOP_REFRESH_MIDWAY:
                 Common.handleRefreshMiss(context, db);

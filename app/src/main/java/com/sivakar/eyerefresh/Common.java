@@ -13,6 +13,8 @@ import androidx.core.app.NotificationManagerCompat;
 import androidx.preference.PreferenceManager;
 
 import com.sivakar.eyerefresh.models.Action;
+import com.sivakar.eyerefresh.models.NotificationType;
+import com.sivakar.eyerefresh.models.ReminderType;
 import com.sivakar.eyerefresh.models.State;
 import com.sivakar.eyerefresh.models.StateLog;
 
@@ -41,35 +43,20 @@ public class Common {
         );
     }
 
-    public static void setReminder(Context context, AppDatabase db, boolean snooze) {
-        long alarmDuration = snooze ? getSnoozeDurationInMillis(context) :
-                getReminderIntervalInMillis(context);
-
-        long alarmTimeStamp = alarmDuration + System.currentTimeMillis();
-
-        AlarmManager alarmManager =
-                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        PendingIntent pendingIntent = makePendingIntentForRefreshAlarm(context);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTimeStamp, pendingIntent);
-
-        AsyncTask.execute(()-> {
-            StateLog stateLog = new StateLog(State.REMINDER_SCHEDULED);
-            stateLog.reminderTimestamp = alarmTimeStamp;
-            try {
-                db.stateLogDao().insert(stateLog);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
     private static PendingIntent makePendingIntentForRefreshAlarm(Context context) {
         Intent intent = new Intent(context, CommonBroadcastReceiver.class);
         intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_NOTIFICATION.name());
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
 
-    public static void sendNotification(Context context, AppDatabase db) {
+    private static PendingIntent makePendingIntentForRefreshTimeUp(Context context) {
+        Intent intent = new Intent(context, CommonBroadcastReceiver.class);
+        intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_REFRESH_TIME_UP_NOTIFICATION.name());
+        return PendingIntent.getBroadcast(context, 7, intent, PendingIntent.FLAG_IMMUTABLE);
+    }
+    
+    public static void sendRefreshDueNotification(Context context, AppDatabase db) {
+        // Take this out to calling method
         AsyncTask.execute(() -> {
             StateLog stateLog = new StateLog(State.REMINDER_SENT);
             try {
@@ -107,10 +94,10 @@ public class Common {
                 .build();
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(Constants.NOTIFICATION_REMINDER_ID, notification);
+        notificationManager.notify(NotificationType.TIME_FOR_REFRESH.ordinal(), notification);
     }
 
-    public static void makeRefreshDoneNotification(Context context) {
+    public static void sendRefreshTimeUpNotification(Context context) {
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
         appOpenIntent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
@@ -142,19 +129,51 @@ public class Common {
         notificationManager.notify(1, notification);
     }
 
+    // sends and alarm and changes the database state
+    public static void scheduleReminder(Context context, AppDatabase db, ReminderType reminderType) {
+        long alarmDuration;
+        switch (reminderType) {
+            case SNOOZE:
+                alarmDuration = getSnoozeDurationInMillis(context);
+                break;
+            default:
+                alarmDuration = getReminderIntervalInMillis(context);
+                break;
+        }
+
+        long alarmTimeStamp = alarmDuration + System.currentTimeMillis();
+
+        AlarmManager alarmManager =
+                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        PendingIntent pendingIntent = makePendingIntentForRefreshAlarm(context);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTimeStamp, pendingIntent);
+
+        AsyncTask.execute(()-> {
+            StateLog stateLog = new StateLog(State.REMINDER_SCHEDULED);
+            stateLog.reminderTimestamp = alarmTimeStamp;
+            try {
+                db.stateLogDao().insert(stateLog);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public static void handleSnooze(Context context, AppDatabase db) {
-        setReminder(context, db, true);
+        scheduleReminder(context, db, ReminderType.SNOOZE);
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.cancel(Constants.NOTIFICATION_REMINDER_ID);
+        notificationManager.cancel(NotificationType.TIME_FOR_REFRESH.ordinal());
     }
 
 
     public static void pauseScheduling(Context context, AppDatabase db) {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.cancel(Constants.NOTIFICATION_REMINDER_ID);
+        notificationManager.cancel(NotificationType.TIME_FOR_REFRESH.ordinal());
+
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(makePendingIntentForRefreshAlarm(context));
+
         AsyncTask.execute(() -> {
             StateLog stateLog = new StateLog(State.PAUSED);
             try {
@@ -185,14 +204,10 @@ public class Common {
         alarmManager.set(AlarmManager.RTC_WAKEUP, alarmTime, pendingIntent);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.cancel(Constants.NOTIFICATION_REMINDER_ID);
+        notificationManager.cancel(NotificationType.TIME_FOR_REFRESH.ordinal());
     }
 
-    private static PendingIntent makePendingIntentForRefreshTimeUp(Context context) {
-        Intent intent = new Intent(context, CommonBroadcastReceiver.class);
-        intent.putExtra(Constants.NOTIFICATION_INTENT_ACTION_KEY, Action.SEND_REFRESH_TIME_UP_NOTIFICATION.name());
-        return PendingIntent.getBroadcast(context, 7, intent, PendingIntent.FLAG_IMMUTABLE);
-    }
+    
 
     public static void handleRefreshMiss(Context context, AppDatabase db) {
         // This works just like snooze for now
@@ -200,16 +215,16 @@ public class Common {
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(makePendingIntentForRefreshTimeUp(context));
-        setReminder(context, db, true);
+        scheduleReminder(context, db, ReminderType.SNOOZE);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.cancel(Constants.NOTIFICATION_TIME_UP_ID);
+        notificationManager.cancel(NotificationType.REFRESH_TIME_UP.ordinal());
     }
 
     public static void handleRefreshDone(Context context, AppDatabase db) {
-        setReminder(context, db, false);
+        scheduleReminder(context, db, ReminderType.NORMAL);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.cancel(Constants.NOTIFICATION_TIME_UP_ID);
+        notificationManager.cancel(NotificationType.REFRESH_TIME_UP.ordinal());
     }
 }

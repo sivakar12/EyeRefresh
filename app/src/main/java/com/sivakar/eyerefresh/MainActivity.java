@@ -1,15 +1,12 @@
 package com.sivakar.eyerefresh;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.Observer;
 import androidx.room.Room;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -21,6 +18,7 @@ import com.sivakar.eyerefresh.fragments.PausedStateFragment;
 import com.sivakar.eyerefresh.fragments.RefreshHappeningStateFragment;
 import com.sivakar.eyerefresh.fragments.ReminderSentStateFragment;
 import com.sivakar.eyerefresh.fragments.ReminderScheduledStateFragment;
+import com.sivakar.eyerefresh.models.ReminderType;
 import com.sivakar.eyerefresh.models.State;
 import com.sivakar.eyerefresh.models.StateLog;
 
@@ -103,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickSchedule(View view) {
-        Common.setReminder(getApplicationContext(), db, false);
+        Common.scheduleReminder(getApplicationContext(), db, ReminderType.NORMAL);
     }
     public void onClickCancel(View view) {
         Common.pauseScheduling(getApplicationContext(), db);
