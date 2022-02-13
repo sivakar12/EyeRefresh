@@ -29,22 +29,22 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
 
         switch(intentEvent) {
             case REMINDER_DUE:
-                EventHandlers.sendRefreshDueNotification(context, db);
+                EventHandlers.handleReminderDue(context, db);
                 break;
             case SNOOZE_REQUESTED:
                 EventHandlers.handleSnooze(context, db);
                 break;
             case SCHEDULING_PAUSED:
-                EventHandlers.pauseScheduling(context, db);
+                EventHandlers.handlePaused(context, db);
                 break;
             case REFRESH_TIME_UP:
-                EventHandlers.sendRefreshTimeUpNotification(context);
+                EventHandlers.handleRefreshTimeUp(context);
                 break;
             case REFRESH_CANCELLED:
-                EventHandlers.handleRefreshMiss(context, db);
+                EventHandlers.handleRefreshCancelled(context, db);
                 break;
             case REFRESH_COMPLETED:
-                EventHandlers.handleRefreshDone(context, db);
+                EventHandlers.handleRefreshCompleted(context, db);
                 break;
         }
 

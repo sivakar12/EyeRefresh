@@ -116,25 +116,25 @@ public class MainActivity extends AppCompatActivity {
 
     // Methods called from fragment's layouts. These are passed to EventHandlers 
     public void onClickScheduleFromPausedState(View view) {
-        EventHandlers.scheduleReminder(getApplicationContext(), db, ReminderType.NORMAL);
+        EventHandlers.handleSchedulingTurnedOn(getApplicationContext(), db);
     }
     public void onClickPauseFromReminderScheduledState(View view) {
-        EventHandlers.pauseScheduling(getApplicationContext(), db);
+        EventHandlers.handlePaused(getApplicationContext(), db);
     }
     public void onClickSnoozeFromReminderStentState(View view) {
         EventHandlers.handleSnooze(getApplicationContext(), db);
     }
     public void onClickPauseFromReminderSentState(View view) {
-        EventHandlers.pauseScheduling(getApplicationContext(), db);
+        EventHandlers.handlePaused(getApplicationContext(), db);
     }
     public void onClickStartRefreshFromReminderSentState(View view) {
-        EventHandlers.startRefresh(getApplicationContext(), db);
+        EventHandlers.handleRefreshStarted(getApplicationContext(), db);
     }
     public void onClickRefreshDoneFromReminderHappeningState(View view) {
-        EventHandlers.handleRefreshDone(getApplicationContext(), db);
+        EventHandlers.handleRefreshCompleted(getApplicationContext(), db);
     }
     public void onClickRefreshMissFromReminderHappeningState(View view) {
-        EventHandlers.handleRefreshMiss(getApplicationContext(), db);
+        EventHandlers.handleRefreshCancelled(getApplicationContext(), db);
     }
     
 
