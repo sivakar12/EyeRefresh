@@ -37,6 +37,9 @@ public class CommonBroadcastReceiver extends BroadcastReceiver {
             case SCHEDULING_PAUSED:
                 EventHandlers.handlePaused(context, db);
                 break;
+            case REFRESH_STARTED:
+                EventHandlers.handleRefreshStarted(context, db);
+                break;
             case REFRESH_TIME_UP:
                 EventHandlers.handleRefreshTimeUp(context);
                 break;

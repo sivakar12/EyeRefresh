@@ -20,7 +20,14 @@ import com.sivakar.eyerefresh.models.StateLog;
 
 
 public class EventHandlers {
-
+    public enum PendingIntentType {
+        OPEN_APP,
+        PAUSE,
+        SNOOZE,
+        START_REFRESH,
+        MISSED,
+        DONE
+    }
     private static long getReminderIntervalInMillis(Context context) {
         return 1000 * Long.parseLong(
                 PreferenceManager
@@ -121,17 +128,22 @@ public class EventHandlers {
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
         appOpenIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
-                context.getApplicationContext(), 0,  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), PendingIntentType.OPEN_APP.ordinal(),  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent snoozeIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         snoozeIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.SNOOZE_REQUESTED.name());
         PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 1, snoozeIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), PendingIntentType.SNOOZE.ordinal(), snoozeIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent pauseSchedulingIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         pauseSchedulingIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.SCHEDULING_PAUSED.name());
         PendingIntent pauseSchedulingPendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 2, pauseSchedulingIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), PendingIntentType.PAUSE.ordinal(), pauseSchedulingIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Intent startRefreshIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
+        startRefreshIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.REFRESH_STARTED.name());
+        PendingIntent startRefreshPendingIntent = PendingIntent.getBroadcast(
+                context.getApplicationContext(), PendingIntentType.START_REFRESH.ordinal(), startRefreshIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Eye Refresh")
@@ -140,7 +152,8 @@ public class EventHandlers {
                 .setContentIntent(appOpenPendingIntent)
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .addAction(R.drawable.ic_launcher_foreground, "Snooze", snoozePendingIntent)
-                .addAction(R.drawable.ic_launcher_foreground, "Pause scheduling", pauseSchedulingPendingIntent)
+                .addAction(R.drawable.ic_launcher_foreground, "Pause", pauseSchedulingPendingIntent)
+                .addAction(R.drawable.ic_launcher_foreground, "Start Timer", startRefreshPendingIntent)
                 .setAutoCancel(true)
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                 .build();
@@ -182,17 +195,17 @@ public class EventHandlers {
         Intent appOpenIntent = new Intent(context.getApplicationContext(), MainActivity.class);
         appOpenIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.OPEN_APP.name());
         PendingIntent appOpenPendingIntent = PendingIntent.getActivity(
-                context.getApplicationContext(), 3,  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), PendingIntentType.OPEN_APP.ordinal(),  appOpenIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Intent refreshCancelledIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         refreshCancelledIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.REFRESH_CANCELLED.name());
         PendingIntent refreshMissedPendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 4,  refreshCancelledIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), PendingIntentType.MISSED.ordinal(),  refreshCancelledIntent, PendingIntent.FLAG_IMMUTABLE);
         
         Intent refreshDoneIntent = new Intent(context.getApplicationContext(), CommonBroadcastReceiver.class);
         refreshDoneIntent.putExtra(Constants.INTENT_EVENT_KEY, Event.REFRESH_COMPLETED.name());
         PendingIntent refreshDonePendingIntent = PendingIntent.getBroadcast(
-                context.getApplicationContext(), 5,  refreshDoneIntent, PendingIntent.FLAG_IMMUTABLE);
+                context.getApplicationContext(), PendingIntentType.DONE.ordinal(),  refreshDoneIntent, PendingIntent.FLAG_IMMUTABLE);
         
         Notification notification = new NotificationCompat.Builder(context, Constants.NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Eye Refresh")
