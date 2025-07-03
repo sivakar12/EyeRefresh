@@ -47,16 +47,17 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                Intent openSettings = new Intent(getApplicationContext(), SettingsActivity.class);
-                startActivity(openSettings);
-                return true;
-            case R.id.view_logs:
-                Intent openLogs = new Intent(getApplicationContext(), LogsActivity.class);
-                startActivity(openLogs);
-            default:
-                return super.onOptionsItemSelected(item);
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_settings) {
+            Intent openSettings = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(openSettings);
+            return true;
+        } else if (itemId == R.id.view_logs) {
+            Intent openLogs = new Intent(getApplicationContext(), LogsActivity.class);
+            startActivity(openLogs);
+            return true; // You were missing a return true here
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 
