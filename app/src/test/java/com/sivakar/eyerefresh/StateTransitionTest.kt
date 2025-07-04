@@ -5,11 +5,13 @@ import org.junit.Assert.*
 
 class StateTransitionTest {
     
+    private val testConfig = Config.getDefault()
+    
     @Test
     fun testPausedToScheduledTransition() {
         val currentState = AppState.RemindersPaused
         val event = AppEvent.NotificationsTurnedOn
-        val transition = transition(currentState, event)
+        val transition = transition(currentState, event, testConfig)
         
         assertTrue(transition.newState is AppState.ReminderScheduled)
         assertTrue(transition.sideEffect is SideEffect.ScheduleEvent)
@@ -25,7 +27,7 @@ class StateTransitionTest {
     fun testScheduledToPausedTransition() {
         val currentState = AppState.ReminderScheduled(System.currentTimeMillis() + 60000L)
         val event = AppEvent.NotificationsPaused
-        val transition = transition(currentState, event)
+        val transition = transition(currentState, event, testConfig)
         
         assertTrue(transition.newState is AppState.RemindersPaused)
         assertTrue(transition.sideEffect == null)
@@ -35,7 +37,7 @@ class StateTransitionTest {
     fun testScheduledToSentTransition() {
         val currentState = AppState.ReminderScheduled(System.currentTimeMillis() + 60000L)
         val event = AppEvent.NotificationDue
-        val transition = transition(currentState, event)
+        val transition = transition(currentState, event, testConfig)
         
         assertTrue(transition.newState is AppState.ReminderSent)
         assertTrue(transition.sideEffect is SideEffect.ShowNotification)
@@ -49,7 +51,7 @@ class StateTransitionTest {
     fun testSentToRefreshTransition() {
         val currentState = AppState.ReminderSent
         val event = AppEvent.RefreshStarted
-        val transition = transition(currentState, event)
+        val transition = transition(currentState, event, testConfig)
         
         assertTrue(transition.newState is AppState.RefreshHappening)
         assertTrue(transition.sideEffect is SideEffect.ScheduleEvent)
@@ -62,7 +64,7 @@ class StateTransitionTest {
     fun testRefreshToScheduledTransition() {
         val currentState = AppState.RefreshHappening
         val event = AppEvent.RefreshMarkedComplete
-        val transition = transition(currentState, event)
+        val transition = transition(currentState, event, testConfig)
         
         assertTrue(transition.newState is AppState.ReminderScheduled)
         assertTrue(transition.sideEffect is SideEffect.ScheduleEvent)

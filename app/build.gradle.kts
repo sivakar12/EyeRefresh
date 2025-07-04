@@ -54,6 +54,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     
+    // AppCompat for AlertDialog
+    implementation("androidx.appcompat:appcompat:1.7.0")
+    
 
 
     // Room Database

@@ -22,44 +22,38 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Received broadcast: ${intent.action}")
-        
         when (intent.action) {
             ACTION_NOTIFICATION_DUE -> {
-                Log.d(TAG, "Notification due - triggering reminder")
                 sendEventToService(context, AppEvent.NotificationDue)
             }
             ACTION_REFRESH_TIME_DONE -> {
-                Log.d(TAG, "Refresh time done - triggering completion")
                 sendEventToService(context, AppEvent.RefreshTimeDone)
             }
             ACTION_START_REFRESH -> {
-                Log.d(TAG, "User clicked Start Break from notification")
                 sendEventToService(context, AppEvent.RefreshStarted)
+                dismissNotification(context)
             }
             ACTION_SNOOZE -> {
-                Log.d(TAG, "User clicked Snooze from notification")
                 sendEventToService(context, AppEvent.SnoozeRequested)
+                dismissNotification(context)
             }
             ACTION_PAUSE -> {
-                Log.d(TAG, "User clicked Pause from notification")
                 sendEventToService(context, AppEvent.NotificationsPaused)
+                dismissNotification(context)
             }
             ACTION_COMPLETE_REFRESH -> {
-                Log.d(TAG, "User clicked Complete from notification")
                 sendEventToService(context, AppEvent.RefreshMarkedComplete)
+                dismissNotification(context)
             }
             ACTION_ABANDON_REFRESH -> {
-                Log.d(TAG, "User clicked Skip from notification")
                 sendEventToService(context, AppEvent.RefreshAbandoned)
+                dismissNotification(context)
             }
             ACTION_BOOT_COMPLETED -> {
-                Log.d(TAG, "Boot completed - restoring reminders if needed")
-                // Restore scheduled reminders after device reboot
                 restoreReminders(context)
             }
             else -> {
-                Log.d(TAG, "Unknown action: ${intent.action}")
+                // Unknown action
             }
         }
     }
@@ -73,10 +67,11 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
     }
     
     private fun restoreReminders(context: Context) {
-        // In a real implementation, this would:
-        // 1. Check if reminders were enabled before reboot
-        // 2. Restore the scheduled notifications
-        // 3. Update the app state accordingly
-        Log.d(TAG, "Restoring reminders after boot")
+        // Restore scheduled reminders after device reboot
+    }
+    
+    private fun dismissNotification(context: Context) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.cancel(NotificationWorker.NOTIFICATION_ID)
     }
 } 

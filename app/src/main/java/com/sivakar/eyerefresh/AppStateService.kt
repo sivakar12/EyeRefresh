@@ -32,12 +32,9 @@ class AppStateService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "app_state_service_channel"
         
-        // Action to start the service
         const val ACTION_START_SERVICE = "com.sivakar.eyerefresh.START_SERVICE"
         const val ACTION_STOP_SERVICE = "com.sivakar.eyerefresh.STOP_SERVICE"
         const val ACTION_PROCESS_EVENT = "com.sivakar.eyerefresh.PROCESS_EVENT"
-        
-        // Extra key for event
         const val EXTRA_EVENT = "event"
     }
     
@@ -73,28 +70,31 @@ class AppStateService : Service() {
     
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "Service created")
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
         
-        // Initialize state from database
         serviceScope.launch {
             getAppStateDao().getAppState().collect { appStateEntity ->
-                val state = appStateEntity?.state ?: AppState.RemindersPaused
-                _appState.value = state
+                try {
+                    val state = appStateEntity?.state ?: AppState.RemindersPaused
+                    if (_appState.value != state) {
+                        _appState.value = state
+                    }
+                } catch (e: Exception) {
+                    getAppStateDao().clearAllStates()
+                    getAppStateDao().updateAppState(AppStateEntity(state = AppState.RemindersPaused))
+                    _appState.value = AppState.RemindersPaused
+                }
             }
         }
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "Service started with action: ${intent?.action}")
-        
         when (intent?.action) {
             ACTION_START_SERVICE -> {
-                Log.d(TAG, "Starting foreground service")
+                // Starting foreground service
             }
             ACTION_STOP_SERVICE -> {
-                Log.d(TAG, "Stopping service")
                 stopSelf()
             }
             ACTION_PROCESS_EVENT -> {
@@ -114,23 +114,30 @@ class AppStateService : Service() {
     
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "Service destroyed")
         db?.close()
     }
     
     fun processEvent(event: AppEvent) {
-        Log.d(TAG, "Processing event: $event")
         serviceScope.launch {
+            if (db == null) {
+                getDatabase()
+            }
+            
             val currentState = _appState.value
-            val (newState, sideEffect) = transition(currentState, event)
+            val config = Config.loadFromPreferences(this@AppStateService)
+            val (newState, sideEffect) = transition(currentState, event, config)
             
-            // Update state
-            _appState.value = newState
+            if (_appState.value != newState) {
+                _appState.value = newState
+            }
             
-            // Persist the new state
-            getAppStateDao().updateAppState(AppStateEntity(state = newState))
+            try {
+                val entity = AppStateEntity(state = newState)
+                getAppStateDao().updateAppState(entity)
+            } catch (e: Exception) {
+                // Handle database error silently
+            }
             
-            // Handle the side effect
             handleSideEffect(sideEffect)
         }
     }
@@ -183,15 +190,27 @@ class AppStateService : Service() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Create content intent to open the app when notification is clicked
+        val contentIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = android.app.PendingIntent.getActivity(
+            this,
+            0,
+            contentIntent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
         val builder = NotificationCompat.Builder(this, NotificationWorker.CHANNEL_ID)
             .setContentTitle(effect.title)
             .setContentText(effect.text)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(contentPendingIntent)
 
         // Add actions for each notification option
-        effect.notificationOptions.forEach { option ->
+        effect.notificationOptions.forEachIndexed { index, option ->
             val intent = Intent(this, CommonBroadcastReceiver::class.java).apply {
                 action = when (option.eventToSend) {
                     is AppEvent.RefreshStarted -> CommonBroadcastReceiver.ACTION_START_REFRESH
@@ -199,13 +218,13 @@ class AppStateService : Service() {
                     is AppEvent.NotificationsPaused -> CommonBroadcastReceiver.ACTION_PAUSE
                     is AppEvent.RefreshMarkedComplete -> CommonBroadcastReceiver.ACTION_COMPLETE_REFRESH
                     is AppEvent.RefreshAbandoned -> CommonBroadcastReceiver.ACTION_ABANDON_REFRESH
-                    else -> return@forEach
+                    else -> return@forEachIndexed
                 }
             }
             
             val pendingIntent = android.app.PendingIntent.getBroadcast(
                 this,
-                option.label.hashCode(),
+                index, // Use index instead of hashCode to ensure unique request codes
                 intent,
                 android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
             )

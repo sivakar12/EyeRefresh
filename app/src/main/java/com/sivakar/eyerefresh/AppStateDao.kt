@@ -13,4 +13,7 @@ interface AppStateDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateAppState(appState: AppStateEntity)
+    
+    @Query("DELETE FROM app_state")
+    suspend fun clearAllStates()
 } 

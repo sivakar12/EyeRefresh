@@ -8,20 +8,20 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
+import android.util.Log
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     private var appStateService: AppStateService? = null
     private var isBound = false
     
-    val appState: StateFlow<AppState> = AppState.RemindersPaused.let { defaultState ->
-        // This will be updated when service is bound
-        kotlinx.coroutines.flow.MutableStateFlow(defaultState)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppState.RemindersPaused)
+    private val _appState = MutableStateFlow<AppState>(AppState.RemindersPaused)
+    val appState: StateFlow<AppState> = _appState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppState.RemindersPaused)
     
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -32,7 +32,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Start observing the service's app state
             viewModelScope.launch {
                 appStateService?.appState?.collect { state ->
-                    (appState as kotlinx.coroutines.flow.MutableStateFlow).value = state
+                    _appState.value = state
                 }
             }
         }
@@ -67,7 +67,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (isBound) {
             appStateService?.processEvent(event)
         } else {
-            // Fallback: send intent to service
             val intent = Intent(getApplication(), AppStateService::class.java).apply {
                 action = AppStateService.ACTION_PROCESS_EVENT
                 putExtra(AppStateService.EXTRA_EVENT, event)

@@ -5,13 +5,13 @@ import com.sivakar.eyerefresh.AppEvent
 
 data class StateTransition(val newState: AppState, val sideEffect: SideEffect? = null)
 
-fun transition(currentState: AppState, event: AppEvent): StateTransition {
+fun transition(currentState: AppState, event: AppEvent, config: Config): StateTransition {
     return when (currentState) {
         is AppState.RemindersPaused -> when (event) {
             is AppEvent.NotificationsTurnedOn -> {
-                val scheduledTime = System.currentTimeMillis() + AppConfig.DEFAULT_REMINDER_INTERVAL_MS
+                val scheduledTime = System.currentTimeMillis() + config.reminderIntervalMs
                 StateTransition(
-                    AppState.ReminderScheduled(scheduledTime, AppConfig.DEFAULT_REMINDER_INTERVAL_MS),
+                    AppState.ReminderScheduled(scheduledTime, config.reminderIntervalMs),
                     SideEffect.ScheduleEvent(AppEvent.NotificationDue, scheduledTime)
                 )
             }
@@ -38,22 +38,22 @@ fun transition(currentState: AppState, event: AppEvent): StateTransition {
         is AppState.ReminderSent -> when (event) {
             is AppEvent.NotificationsPaused -> StateTransition(AppState.RemindersPaused)
             is AppEvent.SnoozeRequested -> {
-                val scheduledTime = System.currentTimeMillis() + AppConfig.DEFAULT_SNOOZE_DURATION_MS
+                val scheduledTime = System.currentTimeMillis() + config.snoozeDurationMs
                 StateTransition(
-                    AppState.ReminderScheduled(scheduledTime, AppConfig.DEFAULT_SNOOZE_DURATION_MS),
+                    AppState.ReminderScheduled(scheduledTime, config.snoozeDurationMs),
                     SideEffect.ScheduleEvent(AppEvent.NotificationDue, scheduledTime)
                 )
             }
             is AppEvent.RefreshStarted -> StateTransition(
-                AppState.RefreshHappening,
-                SideEffect.ScheduleEvent(AppEvent.RefreshTimeDone, System.currentTimeMillis() + AppConfig.DEFAULT_BREAK_DURATION_MS)
+                AppState.RefreshHappening(System.currentTimeMillis()),
+                SideEffect.ScheduleEvent(AppEvent.RefreshTimeDone, System.currentTimeMillis() + config.breakDurationMs)
             )
             else -> StateTransition(currentState)
         }
 
         is AppState.RefreshHappening -> when (event) {
             is AppEvent.RefreshTimeDone -> StateTransition(
-                currentState,
+                AppState.RefreshComplete,
                 SideEffect.ShowNotification(
                     "Refresh Complete",
                     "Your 20-second refresh is done!",
@@ -64,19 +64,40 @@ fun transition(currentState: AppState, event: AppEvent): StateTransition {
                 )
             )
             is AppEvent.RefreshMarkedComplete -> {
-                val scheduledTime = System.currentTimeMillis() + AppConfig.DEFAULT_REMINDER_INTERVAL_MS
+                val scheduledTime = System.currentTimeMillis() + config.reminderIntervalMs
                 StateTransition(
-                    AppState.ReminderScheduled(scheduledTime, AppConfig.DEFAULT_REMINDER_INTERVAL_MS),
+                    AppState.ReminderScheduled(scheduledTime, config.reminderIntervalMs),
                     SideEffect.ScheduleEvent(AppEvent.NotificationDue, scheduledTime)
                 )
             }
             is AppEvent.RefreshAbandoned -> {
-                val scheduledTime = System.currentTimeMillis() + AppConfig.DEFAULT_SNOOZE_DURATION_MS
+                val scheduledTime = System.currentTimeMillis() + config.snoozeDurationMs
                 StateTransition(
-                    AppState.ReminderScheduled(scheduledTime, AppConfig.DEFAULT_SNOOZE_DURATION_MS),
+                    AppState.ReminderScheduled(scheduledTime, config.snoozeDurationMs),
                     SideEffect.ScheduleEvent(AppEvent.NotificationDue, scheduledTime)
                 )
             }
+            is AppEvent.RefreshStarted -> StateTransition(currentState) // Already in refresh state, keep existing start time
+            is AppEvent.NotificationsPaused -> StateTransition(AppState.RemindersPaused)
+            else -> StateTransition(currentState)
+        }
+        
+        is AppState.RefreshComplete -> when (event) {
+            is AppEvent.RefreshMarkedComplete -> {
+                val scheduledTime = System.currentTimeMillis() + config.reminderIntervalMs
+                StateTransition(
+                    AppState.ReminderScheduled(scheduledTime, config.reminderIntervalMs),
+                    SideEffect.ScheduleEvent(AppEvent.NotificationDue, scheduledTime)
+                )
+            }
+            is AppEvent.RefreshAbandoned -> {
+                val scheduledTime = System.currentTimeMillis() + config.snoozeDurationMs
+                StateTransition(
+                    AppState.ReminderScheduled(scheduledTime, config.snoozeDurationMs),
+                    SideEffect.ScheduleEvent(AppEvent.NotificationDue, scheduledTime)
+                )
+            }
+            is AppEvent.NotificationsPaused -> StateTransition(AppState.RemindersPaused)
             else -> StateTransition(currentState)
         }
     }
