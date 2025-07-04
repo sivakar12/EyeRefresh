@@ -5,11 +5,11 @@
         android:id="@+id/action_settings"
         android:icon="@drawable/ic_baseline_settings_24"
         android:title="Settings"
-        app:showAsAction="always"
+        android:showAsAction="always"
         />
     <item
         android:id="@+id/view_logs"
         android:title="Logs"
-        app:showAsAction="never"
+        android:showAsAction="never"
         />
 </menu>
