@@ -1,10 +1,7 @@
 package com.sivakar.eyerefresh
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
-import androidx.core.app.NotificationCompat
+import android.content.Intent
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
@@ -19,40 +16,16 @@ class NotificationWorker(
     }
 
     override fun doWork(): Result {
-        val title = inputData.getString("title") ?: "Eye Refresh Reminder"
-        val text = inputData.getString("text") ?: "Time to take a break and refresh your eyes!"
-
-        showNotification(title, text)
-        return Result.success()
-    }
-
-    private fun showNotification(title: String, text: String) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        // Create notification channel for Android O and above
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Eye Refresh Reminders",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Notifications for eye refresh reminders"
-                enableVibration(true)
-                enableLights(true)
+        val action = inputData.getString("action")
+        
+        if (action != null) {
+            // Send broadcast to trigger the event
+            val intent = Intent(context, CommonBroadcastReceiver::class.java).apply {
+                this.action = action
             }
-            notificationManager.createNotificationChannel(channel)
+            context.sendBroadcast(intent)
         }
-
-        // Build the notification
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // You can replace this with a custom icon
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
-            .build()
-
-        // Show the notification
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        
+        return Result.success()
     }
 } 

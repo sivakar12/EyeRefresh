@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -12,6 +15,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        
+        <service
+            android:name=".AppStateService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+            
         <activity
             android:name=".LogsActivity"
             android:exported="false" />
@@ -28,6 +38,11 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.sivakar.eyerefresh.NOTIFICATION_DUE" />
                 <action android:name="com.sivakar.eyerefresh.REFRESH_TIME_DONE" />
+                <action android:name="com.sivakar.eyerefresh.START_REFRESH" />
+                <action android:name="com.sivakar.eyerefresh.SNOOZE" />
+                <action android:name="com.sivakar.eyerefresh.PAUSE" />
+                <action android:name="com.sivakar.eyerefresh.COMPLETE_REFRESH" />
+                <action android:name="com.sivakar.eyerefresh.ABANDON_REFRESH" />
             </intent-filter>
         </receiver>
 

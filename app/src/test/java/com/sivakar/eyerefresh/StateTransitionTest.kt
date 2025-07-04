@@ -12,10 +12,13 @@ class StateTransitionTest {
         val transition = transition(currentState, event)
         
         assertTrue(transition.newState is AppState.ReminderScheduled)
-        assertTrue(transition.sideEffect is SideEffect.ScheduleNotification)
+        assertTrue(transition.sideEffect is SideEffect.ScheduleEvent)
         
         val scheduledState = transition.newState as AppState.ReminderScheduled
         assertTrue(scheduledState.timeInMillis > System.currentTimeMillis())
+        
+        val sideEffect = transition.sideEffect as SideEffect.ScheduleEvent
+        assertTrue(sideEffect.event is AppEvent.NotificationDue)
     }
     
     @Test
@@ -25,7 +28,7 @@ class StateTransitionTest {
         val transition = transition(currentState, event)
         
         assertTrue(transition.newState is AppState.RemindersPaused)
-        assertTrue(transition.sideEffect is SideEffect.CancelNotification)
+        assertTrue(transition.sideEffect == null)
     }
     
     @Test
@@ -36,6 +39,10 @@ class StateTransitionTest {
         
         assertTrue(transition.newState is AppState.ReminderSent)
         assertTrue(transition.sideEffect is SideEffect.ShowNotification)
+        
+        val sideEffect = transition.sideEffect as SideEffect.ShowNotification
+        assertEquals("Time for Eye Refresh!", sideEffect.title)
+        assertEquals(3, sideEffect.notificationOptions.size)
     }
     
     @Test
@@ -45,7 +52,10 @@ class StateTransitionTest {
         val transition = transition(currentState, event)
         
         assertTrue(transition.newState is AppState.RefreshHappening)
-        assertTrue(transition.sideEffect is SideEffect.ScheduleNotification)
+        assertTrue(transition.sideEffect is SideEffect.ScheduleEvent)
+        
+        val sideEffect = transition.sideEffect as SideEffect.ScheduleEvent
+        assertTrue(sideEffect.event is AppEvent.RefreshTimeDone)
     }
     
     @Test
@@ -55,6 +65,9 @@ class StateTransitionTest {
         val transition = transition(currentState, event)
         
         assertTrue(transition.newState is AppState.ReminderScheduled)
-        assertTrue(transition.sideEffect is SideEffect.ScheduleNotification)
+        assertTrue(transition.sideEffect is SideEffect.ScheduleEvent)
+        
+        val sideEffect = transition.sideEffect as SideEffect.ScheduleEvent
+        assertTrue(sideEffect.event is AppEvent.NotificationDue)
     }
 } 

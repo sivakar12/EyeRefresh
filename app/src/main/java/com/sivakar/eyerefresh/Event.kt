@@ -1,6 +1,8 @@
 package com.sivakar.eyerefresh
 
-sealed class AppEvent {
+import java.io.Serializable
+
+sealed class AppEvent : Serializable {
     data object NotificationsTurnedOn : AppEvent()
     data object NotificationsPaused : AppEvent()
     data object NotificationDue : AppEvent()
