@@ -176,6 +176,9 @@ class AppStateService : Service() {
         // Create notification with the provided options
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
+        // Cancel any existing notifications before showing new ones
+        notificationManager.cancel(NotificationWorker.NOTIFICATION_ID)
+        
         // Create notification channel for Android O and above
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

@@ -14,10 +14,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
-import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.tooling.preview.Preview
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +49,7 @@ fun SettingsScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(16.dp)
     ) {
         // Title at the top
@@ -71,7 +78,7 @@ fun SettingsScreen() {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                ReminderIntervalDropdown(
+                ReminderIntervalPills(
                     currentValue = config.reminderIntervalMs,
                     onValueChange = { newValue ->
                         val newConfig = config.copy(reminderIntervalMs = newValue)
@@ -99,7 +106,7 @@ fun SettingsScreen() {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                BreakDurationDropdown(
+                BreakDurationPills(
                     currentValue = config.breakDurationMs,
                     onValueChange = { newValue ->
                         val newConfig = config.copy(breakDurationMs = newValue)
@@ -127,7 +134,7 @@ fun SettingsScreen() {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                SnoozeDurationDropdown(
+                SnoozeDurationPills(
                     currentValue = config.snoozeDurationMs,
                     onValueChange = { newValue ->
                         val newConfig = config.copy(snoozeDurationMs = newValue)
@@ -155,7 +162,7 @@ fun SettingsScreen() {
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                ExtendedSnoozeDurationDropdown(
+                ExtendedSnoozeDurationPills(
                     currentValue = config.extendedSnoozeDurationMs,
                     onValueChange = { newValue ->
                         val newConfig = config.copy(extendedSnoozeDurationMs = newValue)
@@ -168,204 +175,194 @@ fun SettingsScreen() {
         
         Spacer(modifier = Modifier.weight(1f))
         
-        // Reset to defaults button at the bottom
-        Button(
-            onClick = {
-                val defaultConfig = Config.getDefault()
-                config = defaultConfig
-                Config.saveToPreferences(context, defaultConfig)
-            },
-            modifier = Modifier.fillMaxWidth()
+        // Bottom buttons
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Reset to Defaults")
+            // Done button (primary)
+            Button(
+                onClick = { (context as? ComponentActivity)?.finish() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Done")
+            }
+            // Reset to defaults button (secondary)
+            OutlinedButton(
+                onClick = {
+                    val defaultConfig = Config.getDefault()
+                    config = defaultConfig
+                    Config.saveToPreferences(context, defaultConfig)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Reset to Defaults")
+            }
         }
     }
 }
 
 @Composable
-fun ReminderIntervalDropdown(
+fun ReminderIntervalPills(
     currentValue: Long,
     onValueChange: (Long) -> Unit
 ) {
     val entries = stringArrayResource(R.array.reminder_interval_entries)
     val values = stringArrayResource(R.array.reminder_interval_values)
     
-    var expanded by remember { mutableStateOf(false) }
     val currentIndex = values.indexOf((currentValue / 1000).toString())
-    val displayText = if (currentIndex >= 0) entries[currentIndex] else "20 seconds"
     
-    Box {
-        OutlinedTextField(
-            value = displayText,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Close dropdown" else "Open dropdown"
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(entries.size) { index ->
+            val isSelected = index == currentIndex
+            val entry = entries[index]
+            
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    val valueInSeconds = values[index].toLong()
+                    onValueChange(valueInSeconds * 1000)
+                },
+                label = {
+                    Text(
+                        entry,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-        )
-        
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            entries.forEachIndexed { index, entry ->
-                DropdownMenuItem(
-                    text = { Text(entry) },
-                    onClick = {
-                        val valueInSeconds = values[index].toLong()
-                        onValueChange(valueInSeconds * 1000)
-                        expanded = false
-                    }
-                )
-            }
+            )
         }
     }
 }
 
 @Composable
-fun BreakDurationDropdown(
+fun BreakDurationPills(
     currentValue: Long,
     onValueChange: (Long) -> Unit
 ) {
     val entries = stringArrayResource(R.array.break_duration_entries)
     val values = stringArrayResource(R.array.break_duration_values)
     
-    var expanded by remember { mutableStateOf(false) }
     val currentIndex = values.indexOf((currentValue / 1000).toString())
-    val displayText = if (currentIndex >= 0) entries[currentIndex] else "20 seconds"
     
-    Box {
-        OutlinedTextField(
-            value = displayText,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Close dropdown" else "Open dropdown"
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(entries.size) { index ->
+            val isSelected = index == currentIndex
+            val entry = entries[index]
+            
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    val valueInSeconds = values[index].toLong()
+                    onValueChange(valueInSeconds * 1000)
+                },
+                label = {
+                    Text(
+                        entry,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-        )
-        
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            entries.forEachIndexed { index, entry ->
-                DropdownMenuItem(
-                    text = { Text(entry) },
-                    onClick = {
-                        val valueInSeconds = values[index].toLong()
-                        onValueChange(valueInSeconds * 1000)
-                        expanded = false
-                    }
-                )
-            }
+            )
         }
     }
 }
 
 @Composable
-fun SnoozeDurationDropdown(
+fun SnoozeDurationPills(
     currentValue: Long,
     onValueChange: (Long) -> Unit
 ) {
     val entries = stringArrayResource(R.array.snooze_duration_entries)
     val values = stringArrayResource(R.array.snooze_duration_values)
     
-    var expanded by remember { mutableStateOf(false) }
     val currentIndex = values.indexOf((currentValue / 1000).toString())
-    val displayText = if (currentIndex >= 0) entries[currentIndex] else "2 minutes"
     
-    Box {
-        OutlinedTextField(
-            value = displayText,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Close dropdown" else "Open dropdown"
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(entries.size) { index ->
+            val isSelected = index == currentIndex
+            val entry = entries[index]
+            
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    val valueInSeconds = values[index].toLong()
+                    onValueChange(valueInSeconds * 1000)
+                },
+                label = {
+                    Text(
+                        entry,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-        )
-        
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            entries.forEachIndexed { index, entry ->
-                DropdownMenuItem(
-                    text = { Text(entry) },
-                    onClick = {
-                        val valueInSeconds = values[index].toLong()
-                        onValueChange(valueInSeconds * 1000)
-                        expanded = false
-                    }
-                )
-            }
+            )
         }
     }
 }
 
 @Composable
-fun ExtendedSnoozeDurationDropdown(
+fun ExtendedSnoozeDurationPills(
     currentValue: Long,
     onValueChange: (Long) -> Unit
 ) {
     val entries = stringArrayResource(R.array.extended_snooze_duration_entries)
     val values = stringArrayResource(R.array.extended_snooze_duration_values)
     
-    var expanded by remember { mutableStateOf(false) }
     val currentIndex = values.indexOf((currentValue / 1000).toString())
-    val displayText = if (currentIndex >= 0) entries[currentIndex] else "5 minutes"
     
-    Box {
-        OutlinedTextField(
-            value = displayText,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = {
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Close dropdown" else "Open dropdown"
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(entries.size) { index ->
+            val isSelected = index == currentIndex
+            val entry = entries[index]
+            
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    val valueInSeconds = values[index].toLong()
+                    onValueChange(valueInSeconds * 1000)
+                },
+                label = {
+                    Text(
+                        entry,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-        )
-        
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+} 
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            entries.forEachIndexed { index, entry ->
-                DropdownMenuItem(
-                    text = { Text(entry) },
-                    onClick = {
-                        val valueInSeconds = values[index].toLong()
-                        onValueChange(valueInSeconds * 1000)
-                        expanded = false
-                    }
-                )
-            }
+            SettingsScreen()
         }
     }
 } 

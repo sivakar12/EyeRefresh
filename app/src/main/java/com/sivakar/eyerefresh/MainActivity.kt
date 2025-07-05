@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -18,8 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
@@ -29,6 +34,9 @@ class MainActivity : ComponentActivity() {
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Enable edge-to-edge display
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         
         setContent {
             EyeRefreshTheme {
@@ -114,36 +122,15 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp)
     ) {
-        // Title at the top
-        Text(
-            text = "Eye Refresh",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 32.dp)
-        )
-        
-        // Settings button at the top right
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            IconButton(
-                onClick = {
-                    val intent = Intent(context, SettingsActivity::class.java)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.align(Alignment.TopEnd)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+        // Header with title and settings
+        AppHeader(
+            onSettingsClick = {
+                val intent = Intent(context, SettingsActivity::class.java)
+                context.startActivity(intent)
             }
-        }
+        )
         
         // Main content in the center
         Box(
@@ -164,25 +151,142 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
 }
 
 @Composable
-fun PausedStateScreen(onEvent: (AppEvent) -> Unit) {
+fun AppHeader(onSettingsClick: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        // Title at the top center
+        Text(
+            text = "Eye Refresh",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 16.dp)
+        )
+        
+        // Settings button at the top right, aligned with the title
+        IconButton(
+            onClick = onSettingsClick,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+fun AppTitle(text: String) {
+    Text(
+        text = text,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.padding(bottom = 16.dp)
+    )
+}
+
+@Composable
+fun AppMessage(text: String, isPrimary: Boolean = false) {
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        color = if (isPrimary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 32.dp),
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+    )
+}
+
+@Composable
+fun CountdownDisplay(remainingTime: Long) {
+    Text(
+        text = formatCountdown(remainingTime),
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
+fun ActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.width(200.dp)
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
+fun ActionButtonsRow(
+    primaryText: String,
+    secondaryText: String,
+    onPrimaryClick: () -> Unit,
+    onSecondaryClick: () -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ActionButton(
+            text = primaryText,
+            onClick = onPrimaryClick,
+            modifier = Modifier.width(120.dp)
+        )
+        
+        ActionButton(
+            text = secondaryText,
+            onClick = onSecondaryClick,
+            modifier = Modifier.width(120.dp)
+        )
+    }
+}
+
+@Composable
+fun CenteredContent(
+    title: String,
+    message: String? = null,
+    content: @Composable (() -> Unit)? = null,
+    actions: @Composable (() -> Unit)? = null
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Text(
-            text = "Eye Care Reminders Paused",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        AppTitle(title)
         
-        Button(
-            onClick = { onEvent(AppEvent.NotificationsTurnedOn) },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text("Enable Reminders")
-        }
+        message?.let { AppMessage(it) }
+        
+        content?.invoke()
+        
+        actions?.invoke()
     }
+}
+
+
+
+@Composable
+fun PausedStateScreen(onEvent: (AppEvent) -> Unit) {
+    CenteredContent(
+        title = "Eye Care Reminders Paused",
+        message = "Your eye care reminders are currently paused. Enable them to start protecting your eye health.",
+        actions = {
+            ActionButton(
+                text = "Enable Reminders",
+                onClick = { onEvent(AppEvent.NotificationsTurnedOn) }
+            )
+        }
+    )
 }
 
 @Composable
@@ -198,82 +302,46 @@ fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEven
     
     val remainingTime = maxOf(0L, appState.timeInMillis - currentTime)
     
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Text(
-            text = "Next Reminder Scheduled",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        
-        Text(
-            text = "Time: ${formatTime(appState.timeInMillis)}",
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        Text(
-            text = "Time remaining: ${formatCountdown(remainingTime)}",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Button(
-            onClick = { onEvent(AppEvent.NotificationsPaused) },
-            modifier = Modifier.width(200.dp)
-        ) {
-            Text("Pause Reminders")
+    CenteredContent(
+        title = "Next Reminder Scheduled",
+        content = {
+            CountdownDisplay(remainingTime)
+        },
+        actions = {
+            ActionButton(
+                text = "Pause Reminders",
+                onClick = { onEvent(AppEvent.NotificationsPaused) }
+            )
         }
-    }
+    )
 }
 
 @Composable
 fun SentStateScreen(onEvent: (AppEvent) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Text(
-            text = "Time for Eye Refresh!",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Text(
-            text = "Take a 20-second break to look at something 20 feet away",
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 32.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-        
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = { onEvent(AppEvent.RefreshStarted) },
-                modifier = Modifier.width(120.dp)
-            ) {
-                Text("Start Break")
-            }
-            
-            Button(
-                onClick = { onEvent(AppEvent.RefreshAbandoned) },
-                modifier = Modifier.width(120.dp)
-            ) {
-                Text("Skip")
-            }
+    val context = LocalContext.current
+    val config = remember { Config.loadFromPreferences(context) }
+    val breakDurationSeconds = config.breakDurationMs / 1000
+    
+    CenteredContent(
+        title = "Time for Eye Refresh!",
+        message = "Take a ${breakDurationSeconds}-second break to look at something 20 feet away",
+        actions = {
+            ActionButtonsRow(
+                primaryText = "Start Break",
+                secondaryText = "Skip",
+                onPrimaryClick = { onEvent(AppEvent.RefreshStarted) },
+                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+            )
         }
-    }
+    )
 }
 
 @Composable
 fun RefreshStateScreen(appState: AppState.RefreshHappening, onEvent: (AppEvent) -> Unit) {
+    val context = LocalContext.current
+    val config = remember { Config.loadFromPreferences(context) }
+    val breakDurationSeconds = config.breakDurationMs / 1000
+    
     var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
     
     LaunchedEffect(Unit) {
@@ -283,95 +351,44 @@ fun RefreshStateScreen(appState: AppState.RefreshHappening, onEvent: (AppEvent) 
         }
     }
     
-    val breakDurationMs = 20 * 1000L // This should come from config
     val elapsedTime = currentTime - appState.startTimeInMillis
-    val remainingTime = maxOf(0L, breakDurationMs - elapsedTime)
+    val remainingTime = maxOf(0L, config.breakDurationMs - elapsedTime)
     
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Text(
-            text = "Eye Refresh in Progress",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Text(
-            text = "Look at something 20 feet away for 20 seconds",
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 32.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-        
-        Text(
-            text = "Time remaining: ${formatCountdown(remainingTime)}",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = { onEvent(AppEvent.RefreshMarkedComplete) },
-                modifier = Modifier.width(120.dp)
-            ) {
-                Text("Complete")
-            }
-            
-            Button(
-                onClick = { onEvent(AppEvent.RefreshAbandoned) },
-                modifier = Modifier.width(120.dp)
-            ) {
-                Text("Cancel")
-            }
+    CenteredContent(
+        title = "Eye Refresh in Progress",
+        message = "Look at something 20 feet away for ${breakDurationSeconds} seconds",
+        content = {
+            CountdownDisplay(remainingTime)
+        },
+        actions = {
+            ActionButtonsRow(
+                primaryText = "Complete",
+                secondaryText = "Cancel",
+                onPrimaryClick = { onEvent(AppEvent.RefreshMarkedComplete) },
+                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+            )
         }
-    }
+    )
 }
 
 @Composable
 fun RefreshCompleteStateScreen(onEvent: (AppEvent) -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        Text(
-            text = "Eye Refresh Complete!",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Text(
-            text = "Great job! Your 20-second eye refresh is complete.",
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 32.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-        
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = { onEvent(AppEvent.RefreshMarkedComplete) },
-                modifier = Modifier.width(120.dp)
-            ) {
-                Text("Complete")
-            }
-            
-            Button(
-                onClick = { onEvent(AppEvent.RefreshAbandoned) },
-                modifier = Modifier.width(120.dp)
-            ) {
-                Text("Skip")
-            }
+    val context = LocalContext.current
+    val config = remember { Config.loadFromPreferences(context) }
+    val breakDurationSeconds = config.breakDurationMs / 1000
+    
+    CenteredContent(
+        title = "Eye Refresh Complete!",
+        message = "Great job! Your ${breakDurationSeconds}-second eye refresh is complete.",
+        actions = {
+            ActionButtonsRow(
+                primaryText = "Complete",
+                secondaryText = "Skip",
+                onPrimaryClick = { onEvent(AppEvent.RefreshMarkedComplete) },
+                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+            )
         }
-    }
+    )
 }
 
 private fun formatTime(timeInMillis: Long): String {
@@ -388,5 +405,105 @@ private fun formatCountdown(millis: Long): String {
     return when {
         hours > 0 -> String.format("%d:%02d:%02d", hours, minutes, seconds)
         else -> String.format("%02d:%02d", minutes, seconds)
+    }
+}
+
+// Preview functions
+@Preview(showBackground = true)
+@Composable
+fun PausedStateScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            PausedStateScreen(
+                onEvent = { /* Preview only */ }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ScheduledStateScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            ScheduledStateScreen(
+                appState = AppState.ReminderScheduled(
+                    timeInMillis = System.currentTimeMillis() + (30 * 60 * 1000) // 30 minutes from now
+                ),
+                onEvent = { /* Preview only */ }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SentStateScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            SentStateScreen(
+                onEvent = { /* Preview only */ }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RefreshStateScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            RefreshStateScreen(
+                appState = AppState.RefreshHappening(
+                    startTimeInMillis = System.currentTimeMillis() - (10 * 1000) // Started 10 seconds ago
+                ),
+                onEvent = { /* Preview only */ }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RefreshCompleteStateScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            RefreshCompleteStateScreen(
+                onEvent = { /* Preview only */ }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    EyeRefreshTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            MainScreen(
+                appState = AppState.ReminderScheduled(
+                    timeInMillis = System.currentTimeMillis() + (30 * 60 * 1000)
+                ),
+                onEvent = { /* Preview only */ }
+            )
+        }
     }
 }
