@@ -11,32 +11,10 @@ This is an Android app that sends reminders to do that. The reminders can be pau
 - AppDatabase: Data layer using Room library to store the state transitions. This is the central source of truth for the state transitions
 - BroadcastListener: To handle the scheduled reminders and the actions coming from the notifications
 - Notifications: Using AlarmManager and Notification API to schedule notifications. From the notifications actions can be taken
-- UI: Styled using the brand new Material You desgins from Google and Constraint Layout to make the views responsive
+- UI: Styled using the brand new Material You desgins from Google and Jetpack Compose
 - Settings: Settings are stored in Shared Preferences and durations can be set (mostly for debugging purposes)
 
-## States
 
-- PAUSED
-- REMINDER_SCHEDULED
-- REMINDER_SENT
-- REFRESH_HAPPENING
-
-## Events
-
-- SCHEDULING_TURNED_ON
-- SCHEDULING_PAUSED
-- REMINDER_DUE
-- SNOOZE_REQUESTED
-- REFRESH_STARTED
-- REFRESH_TIME_UP
-- REFRESH_COMPLETED
-- REFRESH_CANCELLED
-- OPEN_APP (for opening app from notification through broadcast receiver)
-
-## Notification Types
-
-- TIME_FOR_REFERSH
-- REFRESH_TIME_UP
 
 ## State Transitions
 
@@ -72,3 +50,53 @@ This is an Android app that sends reminders to do that. The reminders can be pau
 ### REFRESH_HAPPENING -> REFRESH_CANCELLED -> REMINDER_SCHEDULED
 
 - TODO: What should happen here? Now it just snoozes, reminding after two minutes.
+
+# States
+- PAUSED
+- TIME_LEFT_FOR_NEXT_REFRESH
+- REFRESH_CAN_START
+- REFRESH_HAPPENING
+- WAITING_FOR_REFRESH_ACKNOWLEDGEMENT
+
+# Events
+
+- SCHEDULING_TURNED_ON
+- SCHEDULING_PAUSED
+- REFRESH_DUE
+- SNOOZE_REQUESTED
+- REFRESH_STARTED
+- REFRESH_TIME_UP
+- MARK_REFRESH_COMPLETED
+- REFRESH_COULD_NOT_HAPPEN
+
+# Side Effects
+
+- Start Timer (event, time)
+- Send Notification (Notification, Notification Options-Event pairs)
+- Stop Timer
+
+# Notification Types
+
+- TIME_FOR_REFRESH_SESSION
+  - Start Refresh -> REFRESH_STARTED
+  - Snooze -> SNOOZE_REQUESTED
+  - Pause -> SCHEDULING_PAUSED
+
+ - REFRESH_TIME_FINISHED
+  - I did it! -> MARK_REFRESH_COMPLETED
+  - I couldn't do it -> REFRESH_COULD_NOT_HAPPEN
+
+# State Transitions
+
+| State | Event | New State | Notification, Notification Options and Events | Other Side Effect |
+| ------------| ---------------- | ----------------- | --------------- | ---------------------- |
+| PAUSED | SCHEDULING_TURNED_ON | TIME_LEFT_FOR_NEXT_REFRESH | | Start Timer (REFRESH_DUE, 20 minutess from now) |
+| TIME_LEFT_FOR_NEXT_REFRESH | SCHEDULING_PAUSED | PAUSED | | Stop Timer |
+| TIME_LEFT_FOR_NEXT_REFRESH | REFRESH_DUE | REFRESH_CAN_START | TIME_FOR_REFRESH_SESSION | Start Timer (REFRESH_DUE, 1 minnute from now) |
+| REFRESH_CAN_START | SNOOZE_REQUESTED | TIME_LEFT_FOR_NEXT_REFRESH | | Start Timer (REFRESH_DUE, Snooze Time) |
+| REFRESH_CAN_START | SCHEDULING_PAUSED | PAUSED | | | Stop Timer |
+| REFRESH_CAN_START | REFRESH_STARTED | REFRESH_HAPPENING | | Start Timer (REFRESH_TIME_UP, 20 seconds) |
+| REFRESH_HAPPENING| REFRESH_TIME_UP | WAITING_FOR_REFRESH_ACKNOWLEDGEMENT | ERFRESH_TIME_FINISHED | | |
+| WAITING_FOR_REFRESH_ACKNOWLEDGEMENT | MARK_REFRESH_COMPLETED | TIME_LEFT_FOR_NEXT_REFRESH | | Start Timer (REFRESH DUE, 20 minutes from now) | 
+| WAITING_FOR_REFRESH_ACKNOWLEDGEMENT | REFRESH_COULD_NOT_HAPPEN | REFRESH_CAN_START | TIME_FOR_REFRESH_SESSION | Start Timer (REFRESH_DUE, 1 minnute from now) |
+
