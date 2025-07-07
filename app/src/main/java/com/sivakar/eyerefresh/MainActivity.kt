@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sivakar.eyerefresh.core.AppEvent
+import com.sivakar.eyerefresh.core.AppState
+import com.sivakar.eyerefresh.core.Config
 import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
 import kotlinx.coroutines.delay
 
@@ -140,11 +143,11 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             when (appState) {
-                is AppState.RemindersPaused -> PausedStateScreen(onEvent)
-                is AppState.ReminderScheduled -> ScheduledStateScreen(appState, onEvent)
-                is AppState.ReminderSent -> SentStateScreen(onEvent)
+                is AppState.Paused -> PausedStateScreen(onEvent)
+                is AppState.TimeLeftForNextRefresh -> ScheduledStateScreen(appState, onEvent)
+                is AppState.RefreshCanStart -> RefreshCanStartStateScreen(onEvent)
                 is AppState.RefreshHappening -> RefreshStateScreen(appState, onEvent)
-                is AppState.RefreshComplete -> RefreshCompleteStateScreen(onEvent)
+                is AppState.WaitingForRefreshAcknowledgement -> WaitingForAcknowledgementStateScreen(onEvent)
             }
         }
     }
@@ -283,14 +286,14 @@ fun PausedStateScreen(onEvent: (AppEvent) -> Unit) {
         actions = {
             ActionButton(
                 text = "Enable Reminders",
-                onClick = { onEvent(AppEvent.NotificationsTurnedOn) }
+                onClick = { onEvent(AppEvent.SchedulingTurnedOn) }
             )
         }
     )
 }
 
 @Composable
-fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEvent) -> Unit) {
+fun ScheduledStateScreen(appState: AppState.TimeLeftForNextRefresh, onEvent: (AppEvent) -> Unit) {
     var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
     
     LaunchedEffect(Unit) {
@@ -300,7 +303,7 @@ fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEven
         }
     }
     
-    val remainingTime = maxOf(0L, appState.timeInMillis - currentTime)
+    val remainingTime = maxOf(0L, appState.scheduledTimeInMillis - currentTime)
     
     CenteredContent(
         title = "Next Reminder Scheduled",
@@ -310,14 +313,14 @@ fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEven
         actions = {
             ActionButton(
                 text = "Pause Reminders",
-                onClick = { onEvent(AppEvent.NotificationsPaused) }
+                onClick = { onEvent(AppEvent.SchedulingPaused) }
             )
         }
     )
 }
 
 @Composable
-fun SentStateScreen(onEvent: (AppEvent) -> Unit) {
+fun RefreshCanStartStateScreen(onEvent: (AppEvent) -> Unit) {
     val context = LocalContext.current
     val config = remember { Config.loadFromPreferences(context) }
     val breakDurationSeconds = config.breakDurationMs / 1000
@@ -328,9 +331,9 @@ fun SentStateScreen(onEvent: (AppEvent) -> Unit) {
         actions = {
             ActionButtonsRow(
                 primaryText = "Start Break",
-                secondaryText = "Skip",
+                secondaryText = "Snooze",
                 onPrimaryClick = { onEvent(AppEvent.RefreshStarted) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+                onSecondaryClick = { onEvent(AppEvent.SnoozeRequested) }
             )
         }
     )
@@ -364,15 +367,15 @@ fun RefreshStateScreen(appState: AppState.RefreshHappening, onEvent: (AppEvent) 
             ActionButtonsRow(
                 primaryText = "Complete",
                 secondaryText = "Cancel",
-                onPrimaryClick = { onEvent(AppEvent.RefreshMarkedComplete) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+                onPrimaryClick = { onEvent(AppEvent.MarkRefreshCompleted) },
+                onSecondaryClick = { onEvent(AppEvent.RefreshCouldNotHappen) }
             )
         }
     )
 }
 
 @Composable
-fun RefreshCompleteStateScreen(onEvent: (AppEvent) -> Unit) {
+fun WaitingForAcknowledgementStateScreen(onEvent: (AppEvent) -> Unit) {
     val context = LocalContext.current
     val config = remember { Config.loadFromPreferences(context) }
     val breakDurationSeconds = config.breakDurationMs / 1000
@@ -382,10 +385,10 @@ fun RefreshCompleteStateScreen(onEvent: (AppEvent) -> Unit) {
         message = "Great job! Your ${breakDurationSeconds}-second eye refresh is complete.",
         actions = {
             ActionButtonsRow(
-                primaryText = "Complete",
-                secondaryText = "Skip",
-                onPrimaryClick = { onEvent(AppEvent.RefreshMarkedComplete) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+                primaryText = "I did it!",
+                secondaryText = "I couldn't do it",
+                onPrimaryClick = { onEvent(AppEvent.MarkRefreshCompleted) },
+                onSecondaryClick = { onEvent(AppEvent.RefreshCouldNotHappen) }
             )
         }
     )
@@ -433,8 +436,8 @@ fun ScheduledStateScreenPreview() {
             color = MaterialTheme.colorScheme.background
         ) {
             ScheduledStateScreen(
-                appState = AppState.ReminderScheduled(
-                    timeInMillis = System.currentTimeMillis() + (30 * 60 * 1000) // 30 minutes from now
+                appState = AppState.TimeLeftForNextRefresh(
+                    scheduledTimeInMillis = System.currentTimeMillis() + (30 * 60 * 1000) // 30 minutes from now
                 ),
                 onEvent = { /* Preview only */ }
             )
@@ -444,13 +447,13 @@ fun ScheduledStateScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SentStateScreenPreview() {
+fun RefreshCanStartStateScreenPreview() {
     EyeRefreshTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            SentStateScreen(
+            RefreshCanStartStateScreen(
                 onEvent = { /* Preview only */ }
             )
         }
@@ -477,13 +480,13 @@ fun RefreshStateScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun RefreshCompleteStateScreenPreview() {
+fun WaitingForAcknowledgementStateScreenPreview() {
     EyeRefreshTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            RefreshCompleteStateScreen(
+            WaitingForAcknowledgementStateScreen(
                 onEvent = { /* Preview only */ }
             )
         }
@@ -499,8 +502,8 @@ fun MainScreenPreview() {
             color = MaterialTheme.colorScheme.background
         ) {
             MainScreen(
-                appState = AppState.ReminderScheduled(
-                    timeInMillis = System.currentTimeMillis() + (30 * 60 * 1000)
+                appState = AppState.TimeLeftForNextRefresh(
+                    scheduledTimeInMillis = System.currentTimeMillis() + (30 * 60 * 1000)
                 ),
                 onEvent = { /* Preview only */ }
             )

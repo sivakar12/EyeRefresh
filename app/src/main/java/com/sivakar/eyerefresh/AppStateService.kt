@@ -11,6 +11,13 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.room.Room
+import com.sivakar.eyerefresh.core.AppEvent
+import com.sivakar.eyerefresh.core.AppState
+import com.sivakar.eyerefresh.core.Config
+import com.sivakar.eyerefresh.core.NotificationKind
+import com.sivakar.eyerefresh.core.SideEffect
+import com.sivakar.eyerefresh.core.StateTransition
+import com.sivakar.eyerefresh.core.transition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,7 +54,7 @@ class AppStateService : Service() {
     private val binder = AppStateBinder()
     
     // State flow for observing app state
-    private val _appState = MutableStateFlow<AppState>(AppState.RemindersPaused)
+    private val _appState = MutableStateFlow<AppState>(AppState.Paused)
     val appState: Flow<AppState> = _appState
     
     private fun getDatabase(): AppDatabase {
@@ -76,14 +83,14 @@ class AppStateService : Service() {
         serviceScope.launch {
             getAppStateDao().getAppState().collect { appStateEntity ->
                 try {
-                    val state = appStateEntity?.state ?: AppState.RemindersPaused
+                    val state = appStateEntity?.state ?: AppState.Paused
                     if (_appState.value != state) {
                         _appState.value = state
                     }
                 } catch (e: Exception) {
                     getAppStateDao().clearAllStates()
-                    getAppStateDao().updateAppState(AppStateEntity(state = AppState.RemindersPaused))
-                    _appState.value = AppState.RemindersPaused
+                    getAppStateDao().updateAppState(AppStateEntity(state = AppState.Paused))
+                    _appState.value = AppState.Paused
                 }
             }
         }
@@ -146,6 +153,7 @@ class AppStateService : Service() {
         when (sideEffect) {
             is SideEffect.ScheduleEvent -> scheduleEvent(sideEffect)
             is SideEffect.ShowNotification -> showNotification(sideEffect)
+            is SideEffect.StopTimer -> stopTimer()
             null -> { /* No side effect */ }
         }
     }
@@ -153,23 +161,23 @@ class AppStateService : Service() {
     private fun scheduleEvent(effect: SideEffect.ScheduleEvent) {
         // Schedule a broadcast to trigger the event at the specified time
         val intent = Intent(this, CommonBroadcastReceiver::class.java).apply {
-            action = when (effect.event) {
-                is AppEvent.NotificationDue -> CommonBroadcastReceiver.ACTION_NOTIFICATION_DUE
-                is AppEvent.RefreshTimeDone -> CommonBroadcastReceiver.ACTION_REFRESH_TIME_DONE
-                else -> return // Don't schedule other events
-            }
+            putExtra(CommonBroadcastReceiver.EXTRA_EVENT, effect.event)
         }
         
-        // Use WorkManager to schedule the broadcast
+        // Use WorkManager to schedule the notification
         val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
             .setInitialDelay(effect.timeInMillis - System.currentTimeMillis(), TimeUnit.MILLISECONDS)
             .setInputData(workDataOf(
-                "action" to intent.action,
                 "title" to "Eye Refresh",
                 "text" to "Time for your eye refresh!"
             ))
             .build()
         workManager.enqueue(workRequest)
+    }
+
+    private fun stopTimer() {
+        // Cancel any scheduled work
+        workManager.cancelAllWork()
     }
 
     private fun showNotification(effect: SideEffect.ShowNotification) {
@@ -204,25 +212,28 @@ class AppStateService : Service() {
             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
         )
 
+        val (title, text) = when (effect.notificationKind) {
+            is NotificationKind.RefreshReminder -> "Eye Refresh" to "Time for your eye refresh!"
+            is NotificationKind.RefreshComplete -> "Eye Refresh Complete" to "Great job! Your eye refresh is complete."
+        }
+        
         val builder = NotificationCompat.Builder(this, NotificationWorker.CHANNEL_ID)
-            .setContentTitle(effect.title)
-            .setContentText(effect.text)
+            .setContentTitle(title)
+            .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(contentPendingIntent)
 
         // Add actions for each notification option
-        effect.notificationOptions.forEachIndexed { index, option ->
+        val options = when (effect.notificationKind) {
+            is NotificationKind.RefreshReminder -> effect.notificationKind.options
+            is NotificationKind.RefreshComplete -> effect.notificationKind.options
+        }
+        
+        options.forEachIndexed { index, option ->
             val intent = Intent(this, CommonBroadcastReceiver::class.java).apply {
-                action = when (option.eventToSend) {
-                    is AppEvent.RefreshStarted -> CommonBroadcastReceiver.ACTION_START_REFRESH
-                    is AppEvent.SnoozeRequested -> CommonBroadcastReceiver.ACTION_SNOOZE
-                    is AppEvent.NotificationsPaused -> CommonBroadcastReceiver.ACTION_PAUSE
-                    is AppEvent.RefreshMarkedComplete -> CommonBroadcastReceiver.ACTION_COMPLETE_REFRESH
-                    is AppEvent.RefreshAbandoned -> CommonBroadcastReceiver.ACTION_ABANDON_REFRESH
-                    else -> return@forEachIndexed
-                }
+                putExtra(CommonBroadcastReceiver.EXTRA_EVENT, option.eventToSend)
             }
             
             val pendingIntent = android.app.PendingIntent.getBroadcast(

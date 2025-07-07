@@ -8,6 +8,8 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.sivakar.eyerefresh.core.AppEvent
+import com.sivakar.eyerefresh.core.AppState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -20,8 +22,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var appStateService: AppStateService? = null
     private var isBound = false
     
-    private val _appState = MutableStateFlow<AppState>(AppState.RemindersPaused)
-    val appState: StateFlow<AppState> = _appState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppState.RemindersPaused)
+    private val _appState = MutableStateFlow<AppState>(AppState.Paused)
+    val appState: StateFlow<AppState> = _appState.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppState.Paused)
     
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
