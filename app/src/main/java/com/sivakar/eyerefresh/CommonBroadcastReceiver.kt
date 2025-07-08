@@ -15,6 +15,8 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d(TAG, "Received broadcast: ${intent.action}")
+        
         when (intent.action) {
             ACTION_BOOT_COMPLETED -> {
                 restoreReminders(context)
@@ -22,6 +24,8 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
             else -> {
                 // Handle AppEvent directly
                 val event = intent.getSerializableExtra(EXTRA_EVENT) as? AppEvent
+                Log.d(TAG, "Received event: $event")
+                
                 if (event != null) {
                     sendEventToService(context, event)
                     // Dismiss notification for user-triggered events
@@ -51,6 +55,6 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
     
     private fun dismissNotification(context: Context) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-        notificationManager.cancel(NotificationWorker.NOTIFICATION_ID)
+        notificationManager.cancel(AppStateService.EYE_REFRESH_NOTIFICATION_ID)
     }
 } 

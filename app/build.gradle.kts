@@ -64,8 +64,7 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
     
-    // WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.10.2")
+
     
     // Gson for JSON serialization
     implementation("com.google.code.gson:gson:2.11.0")

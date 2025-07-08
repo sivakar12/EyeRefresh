@@ -27,6 +27,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            Log.d("MainViewModel", "Service connected")
             val binder = service as AppStateService.AppStateBinder
             appStateService = binder.getService()
             isBound = true
@@ -34,12 +35,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Start observing the service's app state
             viewModelScope.launch {
                 appStateService?.appState?.collect { state ->
+                    Log.d("MainViewModel", "Received state update: $state")
                     _appState.value = state
                 }
             }
         }
         
         override fun onServiceDisconnected(name: ComponentName?) {
+            Log.d("MainViewModel", "Service disconnected")
             appStateService = null
             isBound = false
         }
@@ -66,6 +69,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     fun onEvent(event: AppEvent) {
+        Log.d("MainViewModel", "Processing event: $event, isBound: $isBound")
         if (isBound) {
             appStateService?.processEvent(event)
         } else {

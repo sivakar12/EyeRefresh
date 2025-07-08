@@ -60,17 +60,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
     val context = LocalContext.current
-    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showNotificationPermissionDialog by remember { mutableStateOf(false) }
     
-    // Permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
+    // Notification permission launcher
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        // Continue regardless of permission result
-        showPermissionDialog = false
+        showNotificationPermissionDialog = false
     }
     
-    // Check permission on first launch
+    // Check notification permission on first launch
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
@@ -84,20 +83,20 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == true -> {
                     // Show rationale dialog
-                    showPermissionDialog = true
+                    showNotificationPermissionDialog = true
                 }
                 else -> {
                     // Request permission directly
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
         }
     }
     
     // Permission rationale dialog
-    if (showPermissionDialog) {
+    if (showNotificationPermissionDialog) {
         AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
+            onDismissRequest = { showNotificationPermissionDialog = false },
             title = { Text("Notification Permission") },
             text = { 
                 Text("Eye Refresh needs notification permission to send you eye care reminders. This helps protect your eye health.")
@@ -105,8 +104,8 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showPermissionDialog = false
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        showNotificationPermissionDialog = false
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
                 ) {
                     Text("Grant Permission")
@@ -114,7 +113,7 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showPermissionDialog = false }
+                    onClick = { showNotificationPermissionDialog = false }
                 ) {
                     Text("Not Now")
                 }
@@ -362,15 +361,8 @@ fun RefreshStateScreen(appState: AppState.RefreshHappening, onEvent: (AppEvent) 
         message = "Look at something 20 feet away for ${breakDurationSeconds} seconds",
         content = {
             CountdownDisplay(remainingTime)
-        },
-        actions = {
-            ActionButtonsRow(
-                primaryText = "Complete",
-                secondaryText = "Cancel",
-                onPrimaryClick = { onEvent(AppEvent.MarkRefreshCompleted) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshCouldNotHappen) }
-            )
         }
+        // No action buttons - user must wait for the timer to complete
     )
 }
 
@@ -384,12 +376,19 @@ fun WaitingForAcknowledgementStateScreen(onEvent: (AppEvent) -> Unit) {
         title = "Eye Refresh Complete!",
         message = "Great job! Your ${breakDurationSeconds}-second eye refresh is complete.",
         actions = {
-            ActionButtonsRow(
-                primaryText = "I did it!",
-                secondaryText = "I couldn't do it",
-                onPrimaryClick = { onEvent(AppEvent.MarkRefreshCompleted) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshCouldNotHappen) }
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ActionButton(
+                    text = "I did it!",
+                    onClick = { onEvent(AppEvent.MarkRefreshCompleted) }
+                )
+                ActionButton(
+                    text = "I couldn't do it",
+                    onClick = { onEvent(AppEvent.RefreshCouldNotHappen) }
+                )
+            }
         }
     )
 }
