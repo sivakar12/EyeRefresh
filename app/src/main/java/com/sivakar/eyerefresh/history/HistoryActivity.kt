@@ -32,6 +32,13 @@ import java.util.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.style.TextAlign
 
 class HistoryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +82,7 @@ fun HistoryScreen(onBackClick: () -> Unit) {
             onNextRange = { viewModel.navigateToNextRange() }
         )
         Spacer(modifier = Modifier.height(16.dp))
+        
         if (sessions.isEmpty()) {
             // Show empty state
             Box(
@@ -90,13 +98,27 @@ fun HistoryScreen(onBackClick: () -> Unit) {
                 )
             }
         } else {
-            // Show sessions list
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            // Show chart and sessions list
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                items(sessions) { session ->
-                    SessionCard(session = session)
+                // Bar chart
+                SessionBarChart(
+                    sessions = sessions,
+                    selectedRange = selectedRange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Sessions list
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(sessions) { session ->
+                        SessionCard(session = session)
+                    }
                 }
             }
         }
@@ -322,4 +344,164 @@ private fun formatTimestamp(timestamp: Long): String {
     val date = Date(timestamp)
     val formatter = SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault())
     return formatter.format(date)
+} 
+
+@Composable
+fun SessionBarChart(
+    sessions: List<CompletedSession>,
+    selectedRange: Range?,
+    modifier: Modifier = Modifier
+) {
+    if (selectedRange == null || sessions.isEmpty()) {
+        Box(
+            modifier = modifier
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
+                    shape = MaterialTheme.shapes.medium
+                )
+                .clip(MaterialTheme.shapes.medium),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "No data to display",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 14.sp
+            )
+        }
+        return
+    }
+
+    val subsections = Range.getSubsections(selectedRange)
+    val sessionCounts = subsections.map { subsection ->
+        val (startTime, endTime) = Range.getStartTimestampAndEndTimestamp(subsection)
+        val count = sessions.count { session ->
+            session.startTime >= startTime && session.startTime <= endTime
+        }
+        Pair(subsection, count)
+    }
+
+    val maxCount = sessionCounts.maxOfOrNull { it.second } ?: 0
+
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Session Count",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            if (maxCount == 0) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No sessions in this period",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
+                    )
+                }
+            } else {
+                // Chart area
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                ) {
+                    val primaryColor = MaterialTheme.colorScheme.primary
+                    val gridColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                    
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        val barWidth = size.width / sessionCounts.size
+                        val maxBarHeight = size.height - 20.dp.toPx() // Leave space for labels
+                        
+                        // Draw subtle grid line
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(0f, size.height - 20.dp.toPx()),
+                            end = Offset(size.width, size.height - 20.dp.toPx()),
+                            strokeWidth = 1.dp.toPx()
+                        )
+                        
+                        sessionCounts.forEachIndexed { index, (subsection, count) ->
+                            val barHeight = if (maxCount > 0) {
+                                (count.toFloat() / maxCount.toFloat()) * maxBarHeight
+                            } else 0f
+                            
+                            val x = index * barWidth + barWidth / 2
+                            val y = size.height - 20.dp.toPx() - barHeight
+                            
+                            // Draw bar with rounded corners
+                            if (barHeight > 0) {
+                                drawRoundRect(
+                                    color = primaryColor,
+                                    topLeft = Offset(x - barWidth * 0.4f, y),
+                                    size = Size(barWidth * 0.8f, barHeight),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                // X-axis labels
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    sessionCounts.forEach { (subsection, _) ->
+                        Text(
+                            text = formatSubsectionLabel(subsection, selectedRange),
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun formatSubsectionLabel(subsection: Range, selectedRange: Range?): String {
+    return when (subsection) {
+        is Range.Hour -> {
+            (subsection.hour + 1).toString()
+        }
+        is Range.Day -> {
+            when (selectedRange) {
+                is Range.Week -> {
+                    // For week view, show "July 1" format
+                    val date = LocalDate.of(subsection.year, subsection.month, subsection.day)
+                    val formatter = DateTimeFormatter.ofPattern("MMMM d")
+                    date.format(formatter)
+                }
+                is Range.Month -> {
+                    // For month view, show just the day number
+                    subsection.day.toString()
+                }
+                else -> subsection.day.toString()
+            }
+        }
+        is Range.Month -> {
+            val date = LocalDate.of(subsection.year, subsection.month, 1)
+            val formatter = DateTimeFormatter.ofPattern("MMM")
+            date.format(formatter)
+        }
+        else -> ""
+    }
 } 
