@@ -67,7 +67,7 @@ class EventManager private constructor(private val context: Context) {
     
     private fun getDatabase(): AppDatabase {
         if (db == null) {
-            db = Room.databaseBuilder(context, AppDatabase::class.java, "app-db").build()
+            db = AppDatabase.getInstance(context)
         }
         return db!!
     }

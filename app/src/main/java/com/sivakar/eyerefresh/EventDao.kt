@@ -18,4 +18,13 @@ interface EventDao {
     
     @Query("DELETE FROM events")
     suspend fun clearAllEvents()
+    
+    @Query("SELECT * FROM events WHERE event = 'RefreshStarted' ORDER BY timestamp DESC")
+    fun getRefreshStartedEvents(): Flow<List<EventEntity>>
+    
+    @Query("SELECT * FROM events WHERE event = 'MarkRefreshCompleted' ORDER BY timestamp DESC")
+    fun getRefreshCompletedEvents(): Flow<List<EventEntity>>
+    
+    @Query("SELECT * FROM events ORDER BY timestamp DESC")
+    fun getAllEventsForDebug(): Flow<List<EventEntity>>
 } 

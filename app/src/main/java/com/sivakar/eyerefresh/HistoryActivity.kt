@@ -10,15 +10,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
+import com.sivakar.eyerefresh.ui.components.EyeRefreshHeader
 import java.text.SimpleDateFormat
 import java.util.*
 
-class LogsActivity : ComponentActivity() {
+class HistoryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -27,7 +29,9 @@ class LogsActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LogsScreen()
+                    HistoryScreen(
+                        onBackClick = { finish() }
+                    )
                 }
             }
         }
@@ -35,34 +39,55 @@ class LogsActivity : ComponentActivity() {
 }
 
 @Composable
-fun LogsScreen() {
+fun HistoryScreen(onBackClick: () -> Unit) {
+    val viewModel: HistoryViewModel = viewModel()
+    val sessions by viewModel.completedSessions.collectAsState(initial = emptyList())
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Activity Logs",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+        // Header with app title and screen title
+        EyeRefreshHeader(
+            title = "Session History",
+            onBackClick = onBackClick
         )
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Placeholder for logs - in a real app, you'd fetch from database
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(sampleLogs) { log ->
-                LogItem(log)
+        if (sessions.isEmpty()) {
+            // Show empty state
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No completed sessions yet",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            // Show sessions list
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(sessions) { session ->
+                    SessionCard(session = session)
+                }
             }
         }
     }
 }
 
 @Composable
-fun LogItem(log: LogEntry) {
+fun SessionCard(session: CompletedSession) {
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", Locale.getDefault()) }
+    
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -71,30 +96,19 @@ fun LogItem(log: LogEntry) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = log.message,
+                text = dateFormat.format(Date(session.startTime)),
                 fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            
             Spacer(modifier = Modifier.height(4.dp))
+            
             Text(
-                text = log.timestamp,
-                fontSize = 12.sp,
+                text = "Duration: ${session.durationSeconds} seconds",
+                fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
-}
-
-data class LogEntry(
-    val message: String,
-    val timestamp: String
-)
-
-// Sample logs for demonstration
-private val sampleLogs = listOf(
-    LogEntry("Eye refresh reminder scheduled", "2024-01-15 10:30:00"),
-    LogEntry("Eye refresh started", "2024-01-15 10:45:00"),
-    LogEntry("Eye refresh completed", "2024-01-15 10:45:20"),
-    LogEntry("Reminder snoozed", "2024-01-15 11:00:00"),
-    LogEntry("Eye refresh reminder scheduled", "2024-01-15 11:02:00")
-) 
+} 
