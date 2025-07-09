@@ -13,7 +13,7 @@ import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -134,7 +134,7 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
                 context.startActivity(intent)
             },
             onHistoryClick = {
-                val intent = Intent(context, HistoryActivity::class.java)
+                val intent = Intent(context, com.sivakar.eyerefresh.history.HistoryActivity::class.java)
                 context.startActivity(intent)
             }
         )
@@ -181,7 +181,7 @@ fun AppHeader(onSettingsClick: () -> Unit, onHistoryClick: () -> Unit) {
                 .padding(top = 8.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.List,
+                imageVector = Icons.AutoMirrored.Filled.List,
                 contentDescription = "History",
                 tint = MaterialTheme.colorScheme.primary
             )

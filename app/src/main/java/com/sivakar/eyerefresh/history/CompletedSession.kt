@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh
+package com.sivakar.eyerefresh.history
 
 import androidx.room.Embedded
 import androidx.room.Relation

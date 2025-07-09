@@ -9,6 +9,9 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.room.Room
+import com.sivakar.eyerefresh.database.AppDatabase
+import com.sivakar.eyerefresh.database.EventDao
+import com.sivakar.eyerefresh.database.EventEntity
 import com.sivakar.eyerefresh.core.AppEvent
 import com.sivakar.eyerefresh.core.AppState
 import com.sivakar.eyerefresh.core.Config
@@ -84,7 +87,8 @@ class EventManager private constructor(private val context: Context) {
             getEventDao().getLatestEvent().collect { latestEvent ->
                 try {
                     val config = Config.loadFromPreferences(context)
-                    val state = AppState.fromLastEvent(latestEvent?.event, config)
+                    val appEvent = latestEvent?.event?.let { AppEvent.fromString(it) }
+                    val state = AppState.fromLastEvent(appEvent, config)
                     Log.d(TAG, "Derived state from latest event: $state")
                     if (_appState.value != state) {
                         _appState.value = state
@@ -107,7 +111,7 @@ class EventManager private constructor(private val context: Context) {
             
             // Store the event in the database
             try {
-                val eventEntity = EventEntity(event = event)
+                val eventEntity = EventEntity(event = event.toString(), timestamp = System.currentTimeMillis())
                 getEventDao().insertEvent(eventEntity)
                 Log.d(TAG, "Stored event in database: $event")
             } catch (e: Exception) {

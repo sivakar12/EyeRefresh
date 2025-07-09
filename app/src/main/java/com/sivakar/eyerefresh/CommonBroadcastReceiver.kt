@@ -23,7 +23,12 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
             }
             else -> {
                 // Handle AppEvent directly
-                val event = intent.getSerializableExtra(EXTRA_EVENT) as? AppEvent
+                val event = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    intent.getSerializableExtra(EXTRA_EVENT, AppEvent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getSerializableExtra(EXTRA_EVENT) as? AppEvent
+                }
                 Log.d(TAG, "Received event: $event")
                 
                 if (event != null) {

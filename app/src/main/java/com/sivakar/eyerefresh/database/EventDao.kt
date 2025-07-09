@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh
+package com.sivakar.eyerefresh.database
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -27,4 +27,7 @@ interface EventDao {
     
     @Query("SELECT * FROM events ORDER BY timestamp DESC")
     fun getAllEventsForDebug(): Flow<List<EventEntity>>
+    
+    @Query("SELECT * FROM events WHERE timestamp BETWEEN :startTime AND :endTime ORDER BY timestamp DESC")
+    fun getEventsInRange(startTime: Long, endTime: Long): Flow<List<EventEntity>>
 } 
