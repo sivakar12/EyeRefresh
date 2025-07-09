@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh
+package com.sivakar.eyerefresh.core
 
 import android.content.Context
 import android.content.SharedPreferences

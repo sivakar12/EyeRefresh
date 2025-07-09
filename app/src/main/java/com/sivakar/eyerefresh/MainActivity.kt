@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sivakar.eyerefresh.core.AppEvent
+import com.sivakar.eyerefresh.core.AppState
+import com.sivakar.eyerefresh.core.Config
 import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
 import kotlinx.coroutines.delay
 
@@ -57,17 +60,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
     val context = LocalContext.current
-    var showPermissionDialog by remember { mutableStateOf(false) }
+    var showNotificationPermissionDialog by remember { mutableStateOf(false) }
     
-    // Permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
+    // Notification permission launcher
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        // Continue regardless of permission result
-        showPermissionDialog = false
+        showNotificationPermissionDialog = false
     }
     
-    // Check permission on first launch
+    // Check notification permission on first launch
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             when {
@@ -81,20 +83,20 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
                     Manifest.permission.POST_NOTIFICATIONS
                 ) == true -> {
                     // Show rationale dialog
-                    showPermissionDialog = true
+                    showNotificationPermissionDialog = true
                 }
                 else -> {
                     // Request permission directly
-                    permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
         }
     }
     
     // Permission rationale dialog
-    if (showPermissionDialog) {
+    if (showNotificationPermissionDialog) {
         AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
+            onDismissRequest = { showNotificationPermissionDialog = false },
             title = { Text("Notification Permission") },
             text = { 
                 Text("Eye Refresh needs notification permission to send you eye care reminders. This helps protect your eye health.")
@@ -102,8 +104,8 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showPermissionDialog = false
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        showNotificationPermissionDialog = false
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                     }
                 ) {
                     Text("Grant Permission")
@@ -111,7 +113,7 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showPermissionDialog = false }
+                    onClick = { showNotificationPermissionDialog = false }
                 ) {
                     Text("Not Now")
                 }
@@ -140,11 +142,11 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             when (appState) {
-                is AppState.RemindersPaused -> PausedStateScreen(onEvent)
-                is AppState.ReminderScheduled -> ScheduledStateScreen(appState, onEvent)
-                is AppState.ReminderSent -> SentStateScreen(onEvent)
+                is AppState.Paused -> PausedStateScreen(onEvent)
+                is AppState.TimeLeftForNextRefresh -> ScheduledStateScreen(appState, onEvent)
+                is AppState.RefreshCanStart -> RefreshCanStartStateScreen(onEvent)
                 is AppState.RefreshHappening -> RefreshStateScreen(appState, onEvent)
-                is AppState.RefreshComplete -> RefreshCompleteStateScreen(onEvent)
+                is AppState.WaitingForRefreshAcknowledgement -> WaitingForAcknowledgementStateScreen(onEvent)
             }
         }
     }
@@ -283,14 +285,14 @@ fun PausedStateScreen(onEvent: (AppEvent) -> Unit) {
         actions = {
             ActionButton(
                 text = "Enable Reminders",
-                onClick = { onEvent(AppEvent.NotificationsTurnedOn) }
+                onClick = { onEvent(AppEvent.SchedulingTurnedOn) }
             )
         }
     )
 }
 
 @Composable
-fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEvent) -> Unit) {
+fun ScheduledStateScreen(appState: AppState.TimeLeftForNextRefresh, onEvent: (AppEvent) -> Unit) {
     var currentTime by remember { mutableStateOf(System.currentTimeMillis()) }
     
     LaunchedEffect(Unit) {
@@ -300,7 +302,7 @@ fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEven
         }
     }
     
-    val remainingTime = maxOf(0L, appState.timeInMillis - currentTime)
+    val remainingTime = maxOf(0L, appState.scheduledTimeInMillis - currentTime)
     
     CenteredContent(
         title = "Next Reminder Scheduled",
@@ -310,14 +312,14 @@ fun ScheduledStateScreen(appState: AppState.ReminderScheduled, onEvent: (AppEven
         actions = {
             ActionButton(
                 text = "Pause Reminders",
-                onClick = { onEvent(AppEvent.NotificationsPaused) }
+                onClick = { onEvent(AppEvent.SchedulingPaused) }
             )
         }
     )
 }
 
 @Composable
-fun SentStateScreen(onEvent: (AppEvent) -> Unit) {
+fun RefreshCanStartStateScreen(onEvent: (AppEvent) -> Unit) {
     val context = LocalContext.current
     val config = remember { Config.loadFromPreferences(context) }
     val breakDurationSeconds = config.breakDurationMs / 1000
@@ -328,9 +330,9 @@ fun SentStateScreen(onEvent: (AppEvent) -> Unit) {
         actions = {
             ActionButtonsRow(
                 primaryText = "Start Break",
-                secondaryText = "Skip",
+                secondaryText = "Snooze",
                 onPrimaryClick = { onEvent(AppEvent.RefreshStarted) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
+                onSecondaryClick = { onEvent(AppEvent.SnoozeRequested) }
             )
         }
     )
@@ -359,20 +361,13 @@ fun RefreshStateScreen(appState: AppState.RefreshHappening, onEvent: (AppEvent) 
         message = "Look at something 20 feet away for ${breakDurationSeconds} seconds",
         content = {
             CountdownDisplay(remainingTime)
-        },
-        actions = {
-            ActionButtonsRow(
-                primaryText = "Complete",
-                secondaryText = "Cancel",
-                onPrimaryClick = { onEvent(AppEvent.RefreshMarkedComplete) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
-            )
         }
+        // No action buttons - user must wait for the timer to complete
     )
 }
 
 @Composable
-fun RefreshCompleteStateScreen(onEvent: (AppEvent) -> Unit) {
+fun WaitingForAcknowledgementStateScreen(onEvent: (AppEvent) -> Unit) {
     val context = LocalContext.current
     val config = remember { Config.loadFromPreferences(context) }
     val breakDurationSeconds = config.breakDurationMs / 1000
@@ -381,12 +376,19 @@ fun RefreshCompleteStateScreen(onEvent: (AppEvent) -> Unit) {
         title = "Eye Refresh Complete!",
         message = "Great job! Your ${breakDurationSeconds}-second eye refresh is complete.",
         actions = {
-            ActionButtonsRow(
-                primaryText = "Complete",
-                secondaryText = "Skip",
-                onPrimaryClick = { onEvent(AppEvent.RefreshMarkedComplete) },
-                onSecondaryClick = { onEvent(AppEvent.RefreshAbandoned) }
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ActionButton(
+                    text = "I did it!",
+                    onClick = { onEvent(AppEvent.MarkRefreshCompleted) }
+                )
+                ActionButton(
+                    text = "I couldn't do it",
+                    onClick = { onEvent(AppEvent.RefreshCouldNotHappen) }
+                )
+            }
         }
     )
 }
@@ -433,8 +435,8 @@ fun ScheduledStateScreenPreview() {
             color = MaterialTheme.colorScheme.background
         ) {
             ScheduledStateScreen(
-                appState = AppState.ReminderScheduled(
-                    timeInMillis = System.currentTimeMillis() + (30 * 60 * 1000) // 30 minutes from now
+                appState = AppState.TimeLeftForNextRefresh(
+                    scheduledTimeInMillis = System.currentTimeMillis() + (30 * 60 * 1000) // 30 minutes from now
                 ),
                 onEvent = { /* Preview only */ }
             )
@@ -444,13 +446,13 @@ fun ScheduledStateScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun SentStateScreenPreview() {
+fun RefreshCanStartStateScreenPreview() {
     EyeRefreshTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            SentStateScreen(
+            RefreshCanStartStateScreen(
                 onEvent = { /* Preview only */ }
             )
         }
@@ -477,13 +479,13 @@ fun RefreshStateScreenPreview() {
 
 @Preview(showBackground = true)
 @Composable
-fun RefreshCompleteStateScreenPreview() {
+fun WaitingForAcknowledgementStateScreenPreview() {
     EyeRefreshTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            RefreshCompleteStateScreen(
+            WaitingForAcknowledgementStateScreen(
                 onEvent = { /* Preview only */ }
             )
         }
@@ -499,8 +501,8 @@ fun MainScreenPreview() {
             color = MaterialTheme.colorScheme.background
         ) {
             MainScreen(
-                appState = AppState.ReminderScheduled(
-                    timeInMillis = System.currentTimeMillis() + (30 * 60 * 1000)
+                appState = AppState.TimeLeftForNextRefresh(
+                    scheduledTimeInMillis = System.currentTimeMillis() + (30 * 60 * 1000)
                 ),
                 onEvent = { /* Preview only */ }
             )
