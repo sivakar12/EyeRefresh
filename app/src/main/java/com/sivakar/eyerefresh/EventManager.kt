@@ -15,6 +15,7 @@ import com.sivakar.eyerefresh.core.Config
 import com.sivakar.eyerefresh.core.NotificationKind
 import com.sivakar.eyerefresh.core.SideEffect
 import com.sivakar.eyerefresh.core.transition
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,7 +48,7 @@ class EventManager private constructor(private val context: Context) {
     
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var db: AppDatabase? = null
-    private var appStateDao: AppStateDao? = null
+    private var eventDao: EventDao? = null
     private lateinit var alarmManager: AlarmManager
     
     // State flow for observing app state
@@ -71,26 +72,25 @@ class EventManager private constructor(private val context: Context) {
         return db!!
     }
     
-    private fun getAppStateDao(): AppStateDao {
-        if (appStateDao == null) {
-            appStateDao = getDatabase().appStateDao()
+    private fun getEventDao(): EventDao {
+        if (eventDao == null) {
+            eventDao = getDatabase().eventDao()
         }
-        return appStateDao!!
+        return eventDao!!
     }
     
     private fun loadStateFromDatabase() {
         scope.launch {
-            getAppStateDao().getAppState().collect { appStateEntity ->
+            getEventDao().getLatestEvent().collect { latestEvent ->
                 try {
-                    val state = appStateEntity?.state ?: AppState.Paused
-                    Log.d(TAG, "Loaded state from database: $state")
+                    val config = Config.loadFromPreferences(context)
+                    val state = AppState.fromLastEvent(latestEvent?.event, config)
+                    Log.d(TAG, "Derived state from latest event: $state")
                     if (_appState.value != state) {
                         _appState.value = state
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error loading state from database: ${e.message}")
-                    getAppStateDao().clearAllStates()
-                    getAppStateDao().updateAppState(AppStateEntity(state = AppState.Paused))
+                    Log.e(TAG, "Error deriving state from latest event: ${e.message}")
                     _appState.value = AppState.Paused
                 }
             }
@@ -105,21 +105,26 @@ class EventManager private constructor(private val context: Context) {
                 getDatabase()
             }
             
+            // Store the event in the database
+            try {
+                val eventEntity = EventEntity(event = event)
+                getEventDao().insertEvent(eventEntity)
+                Log.d(TAG, "Stored event in database: $event")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to store event in database: ${e.message}")
+                return@launch
+            }
+            
+            // Calculate the new state using the transition function
             val currentState = _appState.value
             val config = Config.loadFromPreferences(context)
             val (newState, sideEffect) = transition(currentState, event, config)
             
             Log.d(TAG, "State transition: $currentState -> $newState, sideEffect: $sideEffect")
             
+            // Update the state flow
             if (_appState.value != newState) {
                 _appState.value = newState
-            }
-            
-            try {
-                val entity = AppStateEntity(state = newState)
-                getAppStateDao().updateAppState(entity)
-            } catch (e: Exception) {
-                Log.e(TAG, "Database error: ${e.message}")
             }
             
             handleSideEffect(sideEffect)
@@ -279,6 +284,6 @@ class EventManager private constructor(private val context: Context) {
     fun cleanup() {
         db?.close()
         db = null
-        appStateDao = null
+        eventDao = null
     }
 } 
