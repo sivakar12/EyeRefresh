@@ -13,6 +13,7 @@ import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -126,10 +127,14 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Header with title and settings
+        // Header with title, history, and settings
         AppHeader(
             onSettingsClick = {
                 val intent = Intent(context, SettingsActivity::class.java)
+                context.startActivity(intent)
+            },
+            onHistoryClick = {
+                val intent = Intent(context, com.sivakar.eyerefresh.history.HistoryActivity::class.java)
                 context.startActivity(intent)
             }
         )
@@ -153,7 +158,7 @@ fun MainScreen(appState: AppState, onEvent: (AppEvent) -> Unit) {
 }
 
 @Composable
-fun AppHeader(onSettingsClick: () -> Unit) {
+fun AppHeader(onSettingsClick: () -> Unit, onHistoryClick: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -167,6 +172,20 @@ fun AppHeader(onSettingsClick: () -> Unit) {
                 .align(Alignment.TopCenter)
                 .padding(top = 16.dp)
         )
+        
+        // History button at the top left, aligned with the title
+        IconButton(
+            onClick = onHistoryClick,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.List,
+                contentDescription = "History",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
         
         // Settings button at the top right, aligned with the title
         IconButton(

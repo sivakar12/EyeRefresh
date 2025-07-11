@@ -14,13 +14,15 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
             
-        <activity
-            android:name=".LogsActivity"
-            android:exported="false" />
+
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings" />
+        <activity
+            android:name=".history.HistoryActivity"
+            android:exported="false"
+            android:label="@string/title_activity_history" />
 
         <receiver
             android:name=".CommonBroadcastReceiver"

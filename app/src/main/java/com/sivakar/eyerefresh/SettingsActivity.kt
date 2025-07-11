@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.tooling.preview.Preview
 import com.sivakar.eyerefresh.core.Config
+import com.sivakar.eyerefresh.ui.components.EyeRefreshHeader
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,16 +51,12 @@ fun SettingsScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(16.dp)
     ) {
-        // Title at the top
-        Text(
-            text = "Settings",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 16.dp)
+        // Header with app title and screen title
+        EyeRefreshHeader(
+            title = "Settings",
+            onBackClick = { (context as? ComponentActivity)?.finish() }
         )
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -176,29 +173,16 @@ fun SettingsScreen() {
         
         Spacer(modifier = Modifier.weight(1f))
         
-        // Bottom buttons
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        // Reset to defaults button
+        OutlinedButton(
+            onClick = {
+                val defaultConfig = Config.getDefault()
+                config = defaultConfig
+                Config.saveToPreferences(context, defaultConfig)
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Done button (primary)
-            Button(
-                onClick = { (context as? ComponentActivity)?.finish() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Done")
-            }
-            // Reset to defaults button (secondary)
-            OutlinedButton(
-                onClick = {
-                    val defaultConfig = Config.getDefault()
-                    config = defaultConfig
-                    Config.saveToPreferences(context, defaultConfig)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Reset to Defaults")
-            }
+            Text("Reset to Defaults")
         }
     }
 }

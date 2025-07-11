@@ -11,4 +11,20 @@ sealed class AppEvent : Serializable {
     data object RefreshTimeUp : AppEvent()
     data object MarkRefreshCompleted : AppEvent()
     data object RefreshCouldNotHappen : AppEvent()
+    
+    companion object {
+        fun fromString(eventString: String): AppEvent? {
+            return when (eventString) {
+                "SchedulingTurnedOn" -> SchedulingTurnedOn
+                "SchedulingPaused" -> SchedulingPaused
+                "RefreshDue" -> RefreshDue
+                "SnoozeRequested" -> SnoozeRequested
+                "RefreshStarted" -> RefreshStarted
+                "RefreshTimeUp" -> RefreshTimeUp
+                "MarkRefreshCompleted" -> MarkRefreshCompleted
+                "RefreshCouldNotHappen" -> RefreshCouldNotHappen
+                else -> null
+            }
+        }
+    }
 }
