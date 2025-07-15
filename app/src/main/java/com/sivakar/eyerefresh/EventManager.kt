@@ -22,10 +22,7 @@ import com.sivakar.eyerefresh.core.transition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class EventManager private constructor(private val context: Context) {
@@ -54,18 +51,9 @@ class EventManager private constructor(private val context: Context) {
     private var eventDao: EventDao? = null
     private lateinit var alarmManager: AlarmManager
     
-    // State flow for observing app state
-    private val _appState = MutableStateFlow<AppState>(AppState.Paused)
-    val appState: Flow<AppState> = _appState.stateIn(
-        scope, 
-        SharingStarted.WhileSubscribed(5000), 
-        AppState.Paused
-    )
-    
     init {
         alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         createNotificationChannel()
-        loadStateFromDatabase()
     }
     
     private fun getDatabase(): AppDatabase {
@@ -82,56 +70,44 @@ class EventManager private constructor(private val context: Context) {
         return eventDao!!
     }
     
-    private fun loadStateFromDatabase() {
+    fun processEvent(event: AppEvent) {
         scope.launch {
-            getEventDao().getLatestEvent().collect { latestEvent ->
-                try {
-                    val config = Config.loadFromPreferences(context)
-                    val appEvent = latestEvent?.event?.let { AppEvent.fromString(it) }
-                    val state = AppState.fromLastEvent(appEvent, config)
-                    Log.d(TAG, "Derived state from latest event: $state")
-                    if (_appState.value != state) {
-                        _appState.value = state
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error deriving state from latest event: ${e.message}")
-                    _appState.value = AppState.Paused
-                }
+            Log.d(TAG, "Processing event: $event")
+            
+            try {
+                // 1. Get current state from database
+                val currentState = getCurrentStateFromDatabase()
+                Log.d(TAG, "Current state from database: $currentState")
+                
+                // 2. Store the event in the database
+                val eventEntity = EventEntity(event = event.toString(), timestamp = System.currentTimeMillis())
+                getEventDao().insertEvent(eventEntity)
+                Log.d(TAG, "Stored event in database: $event")
+                
+                // 3. Process event using pure transition function
+                val config = Config.loadFromPreferences(context)
+                val (newState, sideEffect) = transition(currentState, event, config)
+                
+                Log.d(TAG, "State transition: $currentState -> $newState, sideEffect: $sideEffect")
+                
+                // 4. Execute side effects immediately
+                handleSideEffect(sideEffect)
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "Error processing event: ${e.message}", e)
             }
         }
     }
     
-    fun processEvent(event: AppEvent) {
-        scope.launch {
-            Log.d(TAG, "Processing event: $event, current state: ${_appState.value}")
-            
-            if (db == null) {
-                getDatabase()
-            }
-            
-            // Store the event in the database
-            try {
-                val eventEntity = EventEntity(event = event.toString(), timestamp = System.currentTimeMillis())
-                getEventDao().insertEvent(eventEntity)
-                Log.d(TAG, "Stored event in database: $event")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to store event in database: ${e.message}")
-                return@launch
-            }
-            
-            // Calculate the new state using the transition function
-            val currentState = _appState.value
+    private suspend fun getCurrentStateFromDatabase(): AppState {
+        return try {
+            val latestEvent = getEventDao().getLatestEvent().first()
             val config = Config.loadFromPreferences(context)
-            val (newState, sideEffect) = transition(currentState, event, config)
-            
-            Log.d(TAG, "State transition: $currentState -> $newState, sideEffect: $sideEffect")
-            
-            // Update the state flow
-            if (_appState.value != newState) {
-                _appState.value = newState
-            }
-            
-            handleSideEffect(sideEffect)
+            val appEvent: AppEvent? = latestEvent?.event?.let { AppEvent.fromString(it) }
+            AppState.fromLastEvent(appEvent, config)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting current state from database: ${e.message}")
+            AppState.Paused
         }
     }
     
