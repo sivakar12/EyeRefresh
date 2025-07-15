@@ -289,56 +289,23 @@ fun SessionCard(session: CompletedSession) {
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Session ${session.sessionId}",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                Text(
-                    text = formatDuration(session.durationMs),
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
             Text(
-                text = "Started: ${formatTimestamp(session.startTime)}",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            Text(
-                text = "Completed: ${formatTimestamp(session.completeTime)}",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = formatTimestamp(session.startTime),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
 }
 
-private fun formatDuration(durationMs: Long): String {
-    val seconds = durationMs / 1000
-    val minutes = seconds / 60
-    val remainingSeconds = seconds % 60
-    
-    return if (minutes > 0) {
-        "${minutes}m ${remainingSeconds}s"
-    } else {
-        "${remainingSeconds}s"
-    }
-}
+
 
 private fun formatTimestamp(timestamp: Long): String {
     val date = Date(timestamp)
@@ -465,7 +432,7 @@ fun SessionBarChart(
                     sessionCounts.forEach { (subsection, _) ->
                         Text(
                             text = formatSubsectionLabel(subsection, selectedRange),
-                            fontSize = 10.sp,
+                            fontSize = 8.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.weight(1f)
