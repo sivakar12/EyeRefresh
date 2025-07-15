@@ -34,15 +34,6 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
                 if (event != null) {
                     // Use EventManager instead of service
                     EventManager.getInstance(context).processEvent(event)
-                    
-                    // Dismiss notification for user-triggered events
-                    if (event is AppEvent.RefreshStarted || 
-                        event is AppEvent.SnoozeRequested || 
-                        event is AppEvent.SchedulingPaused ||
-                        event is AppEvent.MarkRefreshCompleted ||
-                        event is AppEvent.RefreshCouldNotHappen) {
-                        dismissNotification(context)
-                    }
                 }
             }
         }
@@ -51,10 +42,5 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
     private fun restoreReminders(context: Context) {
         // Restore scheduled reminders after device reboot
         // This could be implemented by loading the last state and rescheduling alarms
-    }
-    
-    private fun dismissNotification(context: Context) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-        notificationManager.cancel(1) // Use the same notification ID as EventManager
     }
 } 

@@ -26,4 +26,5 @@ sealed class SideEffect {
     data class ScheduleEvent(val event: AppEvent, val timeInMillis: Long) : SideEffect()
     data class ShowNotification(val notificationKind: NotificationKind) : SideEffect()
     data object StopTimer : SideEffect()
+    data object ClearNotification : SideEffect()
 }

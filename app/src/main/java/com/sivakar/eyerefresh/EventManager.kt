@@ -86,12 +86,12 @@ class EventManager private constructor(private val context: Context) {
                 
                 // 3. Process event using pure transition function
                 val config = Config.loadFromPreferences(context)
-                val (newState, sideEffect) = transition(currentState, event, config)
+                val (newState, sideEffects) = transition(currentState, event, config)
                 
-                Log.d(TAG, "State transition: $currentState -> $newState, sideEffect: $sideEffect")
+                Log.d(TAG, "State transition: $currentState -> $newState, sideEffects: $sideEffects")
                 
                 // 4. Execute side effects immediately
-                handleSideEffect(sideEffect)
+                handleSideEffects(sideEffects)
                 
             } catch (e: Exception) {
                 Log.e(TAG, "Error processing event: ${e.message}", e)
@@ -111,13 +111,15 @@ class EventManager private constructor(private val context: Context) {
         }
     }
     
-    private fun handleSideEffect(sideEffect: SideEffect?) {
-        Log.d(TAG, "Handling side effect: $sideEffect")
-        when (sideEffect) {
-            is SideEffect.ScheduleEvent -> scheduleEvent(sideEffect)
-            is SideEffect.ShowNotification -> showNotification(sideEffect)
-            is SideEffect.StopTimer -> stopTimer()
-            null -> { /* No side effect */ }
+    private fun handleSideEffects(sideEffects: List<SideEffect>) {
+        Log.d(TAG, "Handling ${sideEffects.size} side effects: $sideEffects")
+        sideEffects.forEach { sideEffect ->
+            when (sideEffect) {
+                is SideEffect.ScheduleEvent -> scheduleEvent(sideEffect)
+                is SideEffect.ShowNotification -> showNotification(sideEffect)
+                is SideEffect.StopTimer -> stopTimer()
+                is SideEffect.ClearNotification -> clearNotification()
+            }
         }
     }
 
@@ -243,6 +245,12 @@ class EventManager private constructor(private val context: Context) {
         }
 
         notificationManager.notify(EYE_REFRESH_NOTIFICATION_ID, builder.build())
+    }
+    
+    private fun clearNotification() {
+        Log.d(TAG, "Clearing notification")
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(EYE_REFRESH_NOTIFICATION_ID)
     }
     
     private fun createNotificationChannel() {
