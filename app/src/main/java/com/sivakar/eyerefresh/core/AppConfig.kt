@@ -5,16 +5,13 @@ import android.content.SharedPreferences
 
 object AppConfig {
     // Default reminder interval (20 minutes)
-    const val DEFAULT_REMINDER_INTERVAL_MS = 20 * 1000L //20 * 60 * 1000L
+    const val DEFAULT_REMINDER_INTERVAL_MS = 20 * 60 * 1000L
     
     // Default break duration (20 seconds)
-    const val DEFAULT_BREAK_DURATION_MS = 5 * 1000L //20 * 1000L
+    const val DEFAULT_BREAK_DURATION_MS = 20 * 1000L
     
     // Default snooze duration (2 minutes)
-    const val DEFAULT_SNOOZE_DURATION_MS = 2 * 1000L //2 * 60 * 1000L
-    
-    // Extended snooze duration (5 minutes) - used when snoozing from scheduled state
-    const val EXTENDED_SNOOZE_DURATION_MS = 5 * 1000L //5 * 60 * 1000L
+    const val DEFAULT_SNOOZE_DURATION_MS = 2 * 60 * 1000L
     
     // Notification titles and messages
     const val DEFAULT_NOTIFICATION_TITLE = "Eye Refresh Reminder"
@@ -29,15 +26,13 @@ object AppConfig {
 data class Config(
     val reminderIntervalMs: Long,
     val breakDurationMs: Long,
-    val snoozeDurationMs: Long,
-    val extendedSnoozeDurationMs: Long
+    val snoozeDurationMs: Long
 ) {
     companion object {
         fun getDefault(): Config = Config(
             reminderIntervalMs = AppConfig.DEFAULT_REMINDER_INTERVAL_MS,
             breakDurationMs = AppConfig.DEFAULT_BREAK_DURATION_MS,
-            snoozeDurationMs = AppConfig.DEFAULT_SNOOZE_DURATION_MS,
-            extendedSnoozeDurationMs = AppConfig.EXTENDED_SNOOZE_DURATION_MS
+            snoozeDurationMs = AppConfig.DEFAULT_SNOOZE_DURATION_MS
         )
         
         fun loadFromPreferences(context: Context): Config {
@@ -45,8 +40,7 @@ data class Config(
             return Config(
                 reminderIntervalMs = prefs.getLong("reminder_interval_ms", AppConfig.DEFAULT_REMINDER_INTERVAL_MS),
                 breakDurationMs = prefs.getLong("break_duration_ms", AppConfig.DEFAULT_BREAK_DURATION_MS),
-                snoozeDurationMs = prefs.getLong("snooze_duration_ms", AppConfig.DEFAULT_SNOOZE_DURATION_MS),
-                extendedSnoozeDurationMs = prefs.getLong("extended_snooze_duration_ms", AppConfig.EXTENDED_SNOOZE_DURATION_MS)
+                snoozeDurationMs = prefs.getLong("snooze_duration_ms", AppConfig.DEFAULT_SNOOZE_DURATION_MS)
             )
         }
         
@@ -56,7 +50,6 @@ data class Config(
                 putLong("reminder_interval_ms", config.reminderIntervalMs)
                 putLong("break_duration_ms", config.breakDurationMs)
                 putLong("snooze_duration_ms", config.snoozeDurationMs)
-                putLong("extended_snooze_duration_ms", config.extendedSnoozeDurationMs)
                 apply()
             }
         }

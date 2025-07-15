@@ -144,34 +144,6 @@ fun SettingsScreen() {
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Extended snooze duration setting
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Extended Snooze Duration",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                ExtendedSnoozeDurationPills(
-                    currentValue = config.extendedSnoozeDurationMs,
-                    onValueChange = { newValue ->
-                        val newConfig = config.copy(extendedSnoozeDurationMs = newValue)
-                        config = newConfig
-                        Config.saveToPreferences(context, newConfig)
-                    }
-                )
-            }
-        }
-        
         Spacer(modifier = Modifier.weight(1f))
         
         // Reset to defaults button
@@ -311,44 +283,6 @@ fun SnoozeDurationPills(
         }
     }
 }
-
-@Composable
-fun ExtendedSnoozeDurationPills(
-    currentValue: Long,
-    onValueChange: (Long) -> Unit
-) {
-    val entries = stringArrayResource(R.array.extended_snooze_duration_entries)
-    val values = stringArrayResource(R.array.extended_snooze_duration_values)
-    
-    val currentIndex = values.indexOf((currentValue / 1000).toString())
-    
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(entries.size) { index ->
-            val isSelected = index == currentIndex
-            val entry = entries[index]
-            
-            FilterChip(
-                selected = isSelected,
-                onClick = {
-                    val valueInSeconds = values[index].toLong()
-                    onValueChange(valueInSeconds * 1000)
-                },
-                label = {
-                    Text(
-                        entry,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
-    }
-} 
 
 @Preview(showBackground = true)
 @Composable
