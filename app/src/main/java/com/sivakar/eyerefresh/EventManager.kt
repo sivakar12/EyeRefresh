@@ -163,7 +163,7 @@ class EventManager private constructor(private val context: Context) {
         
         Log.d(TAG, "Inexact alarm scheduled successfully")
     }
-
+    
     private fun stopTimer() {
         Log.d(TAG, "Stopping all timers")
         
@@ -273,5 +273,92 @@ class EventManager private constructor(private val context: Context) {
         db?.close()
         db = null
         eventDao = null
+    }
+    
+    /**
+     * Restores the app state after device boot.
+     * This method handles expired timers and reschedules alarms appropriately.
+     */
+    fun restoreStateAfterBoot() {
+        Log.d(TAG, "Boot restoration initiated")
+        recoverState("boot")
+    }
+    
+    /**
+     * Recovers the app state from various scenarios like crashes, app closes, or periodic health checks.
+     * This method handles expired timers and reschedules alarms appropriately.
+     * 
+     * @param recoveryReason The reason for recovery (e.g., "boot", "crash", "health_check", "app_restart")
+     */
+    fun recoverState(recoveryReason: String = "unknown") {
+        scope.launch {
+            try {
+                Log.d(TAG, "Recovering state after: $recoveryReason")
+                
+                // Get the current state from database
+                val currentState = getCurrentStateFromDatabase()
+                Log.d(TAG, "Current state from database: $currentState")
+                
+                // Handle state restoration based on current state
+                when (currentState) {
+                    is AppState.Paused -> {
+                        Log.d(TAG, "App was paused, no recovery needed")
+                    }
+                    
+                    is AppState.TimeLeftForNextRefresh -> {
+                        val now = System.currentTimeMillis()
+                        val timeUntilScheduled = currentState.scheduledTimeInMillis - now
+                        Log.d(TAG, "TimeLeftForNextRefresh state: scheduled for ${currentState.scheduledTimeInMillis}, now: $now, time until: ${timeUntilScheduled}ms")
+                        
+                        if (currentState.scheduledTimeInMillis <= now) {
+                            // Timer has expired, trigger refresh due
+                            Log.d(TAG, "Timer expired, triggering refresh due")
+                            processEvent(AppEvent.RefreshDue)
+                        } else {
+                            // Timer is still valid, reschedule it
+                            Log.d(TAG, "Rescheduling timer for ${currentState.scheduledTimeInMillis} (in ${timeUntilScheduled}ms)")
+                            scheduleEvent(SideEffect.ScheduleEvent(AppEvent.RefreshDue, currentState.scheduledTimeInMillis))
+                        }
+                    }
+                    
+                    is AppState.RefreshCanStart -> {
+                        // Show notification for refresh that can start
+                        Log.d(TAG, "Refresh can start, showing notification")
+                        showNotification(SideEffect.ShowNotification(NotificationKind.RefreshReminder))
+                    }
+                    
+                    is AppState.RefreshHappening -> {
+                        val now = System.currentTimeMillis()
+                        val config = Config.loadFromPreferences(context)
+                        val elapsedTime = now - currentState.startTimeInMillis
+                        val remainingTime = config.breakDurationMs - elapsedTime
+                        
+                        Log.d(TAG, "RefreshHappening state: started at ${currentState.startTimeInMillis}, now: $now, elapsed: ${elapsedTime}ms, remaining: ${remainingTime}ms")
+                        
+                        if (elapsedTime >= config.breakDurationMs) {
+                            // Break time has expired, trigger refresh time up
+                            Log.d(TAG, "Break time expired, triggering refresh time up")
+                            processEvent(AppEvent.RefreshTimeUp)
+                        } else {
+                            // Break is still in progress, reschedule the timer
+                            val scheduledTime = now + remainingTime
+                            Log.d(TAG, "Rescheduling break timer for ${scheduledTime} (in ${remainingTime}ms)")
+                            scheduleEvent(SideEffect.ScheduleEvent(AppEvent.RefreshTimeUp, scheduledTime))
+                        }
+                    }
+                    
+                    is AppState.WaitingForRefreshAcknowledgement -> {
+                        // Show notification for refresh completion
+                        Log.d(TAG, "Waiting for acknowledgement, showing notification")
+                        showNotification(SideEffect.ShowNotification(NotificationKind.RefreshComplete))
+                    }
+                }
+                
+                Log.d(TAG, "State recovery completed successfully for: $recoveryReason")
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "Error recovering state after $recoveryReason: ${e.message}", e)
+            }
+        }
     }
 } 

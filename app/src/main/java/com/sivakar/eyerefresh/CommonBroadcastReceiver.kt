@@ -41,6 +41,18 @@ class CommonBroadcastReceiver : BroadcastReceiver() {
     
     private fun restoreReminders(context: Context) {
         // Restore scheduled reminders after device reboot
-        // This could be implemented by loading the last state and rescheduling alarms
+        Log.d(TAG, "Restoring reminders after boot")
+        
+        try {
+            // Ensure EventManager is initialized (this will create the singleton if it doesn't exist)
+            val eventManager = EventManager.getInstance(context)
+            
+            // Restore the app state after boot
+            eventManager.restoreStateAfterBoot()
+            
+            Log.d(TAG, "Boot restoration initiated successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error restoring reminders after boot: ${e.message}", e)
+        }
     }
 } 
