@@ -52,6 +52,7 @@ fun SettingsScreen() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
         // Header with app title and screen title
         EyeRefreshHeader(
@@ -183,6 +184,16 @@ fun SettingsScreen() {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Reset to Defaults")
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Done button
+        Button(
+            onClick = { (context as? ComponentActivity)?.finish() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Done")
         }
     }
 }
