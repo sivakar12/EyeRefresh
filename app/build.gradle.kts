@@ -57,14 +57,13 @@ dependencies {
     // AppCompat for AlertDialog
     implementation("androidx.appcompat:appcompat:1.7.0")
     
-
+    // WorkManager for background work scheduling
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Room Database
     val roomVersion = "2.7.2"
     implementation("androidx.room:room-runtime:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
-    
-
     
     // Gson for JSON serialization
     implementation("com.google.code.gson:gson:2.11.0")

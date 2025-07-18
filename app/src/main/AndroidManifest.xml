@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sivakar.eyerefresh">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -23,6 +22,10 @@
             android:name=".history.HistoryActivity"
             android:exported="false"
             android:label="@string/title_activity_history" />
+        <activity
+            android:name=".NotificationActionActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <receiver
             android:name=".CommonBroadcastReceiver"
@@ -30,13 +33,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="com.sivakar.eyerefresh.NOTIFICATION_DUE" />
-                <action android:name="com.sivakar.eyerefresh.REFRESH_TIME_DONE" />
-                <action android:name="com.sivakar.eyerefresh.START_REFRESH" />
-                <action android:name="com.sivakar.eyerefresh.SNOOZE" />
-                <action android:name="com.sivakar.eyerefresh.PAUSE" />
-                <action android:name="com.sivakar.eyerefresh.COMPLETE_REFRESH" />
-                <action android:name="com.sivakar.eyerefresh.ABANDON_REFRESH" />
             </intent-filter>
         </receiver>
 
