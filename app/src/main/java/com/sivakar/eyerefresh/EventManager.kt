@@ -191,16 +191,7 @@ class EventManager private constructor(private val context: Context) {
         // Cancel any existing notifications before showing new ones
         notificationManager.cancel(EYE_REFRESH_NOTIFICATION_ID)
 
-        // Create content intent to open the app when notification is clicked
-        val contentIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val contentPendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            contentIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        // No content intent - app is purely notification-driven
 
         val (title, text) = when (effect.notificationKind) {
             is NotificationKind.RefreshReminder -> "Eye Refresh" to "Time for your eye refresh!"
@@ -213,7 +204,6 @@ class EventManager private constructor(private val context: Context) {
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
-            .setContentIntent(contentPendingIntent)
 
         // Add actions for each notification option
         val options = when (effect.notificationKind) {
@@ -222,12 +212,12 @@ class EventManager private constructor(private val context: Context) {
         }
         
         options.forEachIndexed { index, option ->
-            val intent = Intent(context, NotificationActionActivity::class.java).apply {
-                putExtra(NotificationActionActivity.EXTRA_EVENT, option.eventToSend)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            val intent = Intent(context, EventBroadcastReceiver::class.java).apply {
+                action = EventBroadcastReceiver.ACTION_PROCESS_EVENT
+                putExtra(EventBroadcastReceiver.EXTRA_EVENT, option.eventToSend)
             }
             
-            val pendingIntent = PendingIntent.getActivity(
+            val pendingIntent = PendingIntent.getBroadcast(
                 context,
                 index,
                 intent,
@@ -273,7 +263,7 @@ class EventManager private constructor(private val context: Context) {
     }
     
     private fun schedulePeriodicHealthChecks() {
-        Log.d(TAG, "Scheduling periodic health checks")
+        Log.d(TAG, "Scheduling periodic health checks every 20 minutes")
         
         val healthCheckWork = PeriodicWorkRequestBuilder<HealthCheckWorker>(
             Duration.ofMinutes(20)
@@ -285,7 +275,7 @@ class EventManager private constructor(private val context: Context) {
             healthCheckWork
         )
         
-        Log.d(TAG, "Periodic health checks scheduled successfully")
+        Log.d(TAG, "Periodic health checks scheduled successfully every 20 minutes")
     }
     
     /**

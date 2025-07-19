@@ -39,6 +39,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Run health check when main activity opens
+        EventManager.getInstance(this).recoverState("app_launch")
+        
         // Enable edge-to-edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
         
