@@ -203,6 +203,8 @@ fun AppHeader(onSettingsClick: () -> Unit, onHistoryClick: () -> Unit) {
                 tint = MaterialTheme.colorScheme.primary
             )
         }
+        
+
     }
 }
 

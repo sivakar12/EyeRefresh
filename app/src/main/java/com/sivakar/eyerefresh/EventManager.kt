@@ -1,5 +1,6 @@
 package com.sivakar.eyerefresh
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -8,13 +9,12 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.room.Room
-import androidx.work.Constraints
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.sivakar.eyerefresh.database.AppDatabase
+import com.sivakar.eyerefresh.workers.HealthCheckWorker
 import com.sivakar.eyerefresh.database.EventDao
 import com.sivakar.eyerefresh.database.EventEntity
 import com.sivakar.eyerefresh.core.AppEvent
@@ -23,8 +23,6 @@ import com.sivakar.eyerefresh.core.Config
 import com.sivakar.eyerefresh.core.NotificationKind
 import com.sivakar.eyerefresh.core.SideEffect
 import com.sivakar.eyerefresh.core.transition
-import com.sivakar.eyerefresh.workers.EventProcessingWorker
-import com.sivakar.eyerefresh.workers.HealthCheckWorker
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,9 +38,11 @@ class EventManager private constructor(private val context: Context) {
         private const val EYE_REFRESH_CHANNEL_ID = "eye_refresh_channel"
         private const val EYE_REFRESH_NOTIFICATION_ID = 1
         
-        // Work names for different events
-        private const val WORK_NAME_REFRESH_DUE = "eye_refresh_reminder"
-        private const val WORK_NAME_REFRESH_TIME_UP = "eye_refresh_break_timer"
+        // Alarm request codes for different events
+        private const val ALARM_REQUEST_REFRESH_DUE = 1001
+        private const val ALARM_REQUEST_REFRESH_TIME_UP = 1002
+        
+        // Work names for health checks only
         private const val WORK_NAME_HEALTH_CHECK = "periodic_health_check"
         private const val WORK_NAME_BOOT_HEALTH_CHECK = "boot_health_check"
         
@@ -59,8 +59,10 @@ class EventManager private constructor(private val context: Context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var db: AppDatabase? = null
     private var eventDao: EventDao? = null
+    private lateinit var alarmManager: AlarmManager
     
     init {
+        alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         createNotificationChannel()
         schedulePeriodicHealthChecks()
     }
@@ -133,54 +135,67 @@ class EventManager private constructor(private val context: Context) {
     }
 
     private fun scheduleEvent(effect: SideEffect.ScheduleEvent) {
-        Log.d(TAG, "Scheduling event with WorkManager: ${effect.event} at ${effect.timeInMillis}")
+        Log.d(TAG, "Scheduling event: ${effect.event} at ${effect.timeInMillis}")
         
-        val workRequest = createWorkRequestForEvent(effect.event, effect.timeInMillis)
-        val workName = getWorkName(effect.event)
+        val intent = Intent(context, CommonBroadcastReceiver::class.java).apply {
+            putExtra(CommonBroadcastReceiver.EXTRA_EVENT, effect.event)
+        }
         
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            workName,
-            ExistingWorkPolicy.REPLACE,
-            workRequest
+        val requestCode = when (effect.event) {
+            is AppEvent.RefreshDue -> ALARM_REQUEST_REFRESH_DUE
+            is AppEvent.RefreshTimeUp -> ALARM_REQUEST_REFRESH_TIME_UP
+            else -> ALARM_REQUEST_REFRESH_DUE
+        }
+        
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
-        Log.d(TAG, "Work scheduled successfully: $workName")
-    }
-    
-    private fun createWorkRequestForEvent(event: AppEvent, timeInMillis: Long): androidx.work.OneTimeWorkRequest {
-        val delay = maxOf(0L, timeInMillis - System.currentTimeMillis())
+        // Cancel any existing alarm for this event type
+        alarmManager.cancel(pendingIntent)
         
-        val inputData = Data.Builder()
-            .putString(EventProcessingWorker.KEY_EVENT, event.toString())
-            .build()
-        
-        val constraints = Constraints.Builder()
-            .setRequiresBatteryNotLow(true)
-            .build()
-        
-        return OneTimeWorkRequestBuilder<EventProcessingWorker>()
-            .setInitialDelay(Duration.ofMillis(delay))
-            .setInputData(inputData)
-            .setConstraints(constraints)
-            .build()
-    }
-    
-    private fun getWorkName(event: AppEvent): String {
-        return when (event) {
-            is AppEvent.RefreshDue -> WORK_NAME_REFRESH_DUE
-            is AppEvent.RefreshTimeUp -> WORK_NAME_REFRESH_TIME_UP
-            else -> "eye_refresh_event_${System.currentTimeMillis()}"
+        // Use inexact alarms - they don't require special permissions and work reliably
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                effect.timeInMillis,
+                pendingIntent
+            )
+        } else {
+            alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                effect.timeInMillis,
+                pendingIntent
+            )
         }
+        
+        Log.d(TAG, "Inexact alarm scheduled successfully")
     }
     
     private fun stopTimer() {
-        Log.d(TAG, "Stopping all timers with WorkManager")
+        Log.d(TAG, "Stopping all timers")
         
-        // Cancel all scheduled work
-        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME_REFRESH_DUE)
-        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME_REFRESH_TIME_UP)
+        // Cancel all scheduled alarms
+        val refreshDueIntent = Intent(context, CommonBroadcastReceiver::class.java)
+        val refreshDuePendingIntent = PendingIntent.getBroadcast(
+            context,
+            ALARM_REQUEST_REFRESH_DUE,
+            refreshDueIntent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        refreshDuePendingIntent?.let { alarmManager.cancel(it) }
         
-        Log.d(TAG, "All timers cancelled successfully")
+        val refreshTimeUpIntent = Intent(context, CommonBroadcastReceiver::class.java)
+        val refreshTimeUpPendingIntent = PendingIntent.getBroadcast(
+            context,
+            ALARM_REQUEST_REFRESH_TIME_UP,
+            refreshTimeUpIntent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        refreshTimeUpPendingIntent?.let { alarmManager.cancel(it) }
     }
 
     private fun showNotification(effect: SideEffect.ShowNotification) {
@@ -191,7 +206,16 @@ class EventManager private constructor(private val context: Context) {
         // Cancel any existing notifications before showing new ones
         notificationManager.cancel(EYE_REFRESH_NOTIFICATION_ID)
 
-        // No content intent - app is purely notification-driven
+        // Create content intent to open the app when notification is clicked
+        val contentIntent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            contentIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val (title, text) = when (effect.notificationKind) {
             is NotificationKind.RefreshReminder -> "Eye Refresh" to "Time for your eye refresh!"
@@ -204,6 +228,7 @@ class EventManager private constructor(private val context: Context) {
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(contentPendingIntent)
 
         // Add actions for each notification option
         val options = when (effect.notificationKind) {
@@ -212,9 +237,8 @@ class EventManager private constructor(private val context: Context) {
         }
         
         options.forEachIndexed { index, option ->
-            val intent = Intent(context, EventBroadcastReceiver::class.java).apply {
-                action = EventBroadcastReceiver.ACTION_PROCESS_EVENT
-                putExtra(EventBroadcastReceiver.EXTRA_EVENT, option.eventToSend)
+            val intent = Intent(context, CommonBroadcastReceiver::class.java).apply {
+                putExtra(CommonBroadcastReceiver.EXTRA_EVENT, option.eventToSend)
             }
             
             val pendingIntent = PendingIntent.getBroadcast(
@@ -283,8 +307,9 @@ class EventManager private constructor(private val context: Context) {
      * This method schedules a health check work that will run after the system is ready.
      */
     fun restoreStateAfterBoot() {
-        Log.d(TAG, "Boot restoration initiated with WorkManager")
+        Log.d(TAG, "Boot restoration initiated")
         
+        // Schedule a health check work that will run after the system is ready
         val healthCheckWork = OneTimeWorkRequestBuilder<HealthCheckWorker>()
             .setInitialDelay(Duration.ofMinutes(1)) // Delay to ensure system is ready
             .build()

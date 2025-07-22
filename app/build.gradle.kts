@@ -57,7 +57,7 @@ dependencies {
     // AppCompat for AlertDialog
     implementation("androidx.appcompat:appcompat:1.7.0")
     
-    // WorkManager for background work scheduling
+    // WorkManager for health checks and background work
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Room Database
