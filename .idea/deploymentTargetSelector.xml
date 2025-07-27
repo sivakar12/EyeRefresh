@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="Eye Refreesh">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-08T06:26:18.368433Z">
+        <DropdownSelection timestamp="2025-07-27T15:13:49.292589Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=RZCT81F4EGX" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/sivakar/.android/avd/Medium_Tablet.avd" />
             </handle>
           </Target>
         </DropdownSelection>

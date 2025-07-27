@@ -11,6 +11,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,7 +24,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sivakar.eyerefresh.history.CompletedSession
 import com.sivakar.eyerefresh.history.Range
 import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
-import com.sivakar.eyerefresh.ui.components.EyeRefreshHeader
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -64,60 +64,88 @@ fun HistoryScreen(onBackClick: () -> Unit) {
     val sessions by viewModel.completedSessions.collectAsState(initial = emptyList())
     val selectedRange by viewModel.selectedRange.collectAsState()
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Header with app title and screen title
-        EyeRefreshHeader(
-            title = "Session History",
-            onBackClick = onBackClick
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        RangeSelectionControls(
-            selectedRange = selectedRange,
-            onRangeSelected = { viewModel.selectRange(it) },
-            onPreviousRange = { viewModel.navigateToPreviousRange() },
-            onNextRange = { viewModel.navigateToNextRange() }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        if (sessions.isEmpty()) {
-            // Show empty state
+    Scaffold(
+        topBar = {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxWidth()
             ) {
+                // Title at the top center
                 Text(
-                    text = "No completed sessions in selected range",
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            // Show chart and sessions list
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                // Bar chart
-                SessionBarChart(
-                    sessions = sessions,
-                    selectedRange = selectedRange,
+                    text = "Session History",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
+                        .align(Alignment.TopCenter)
+                        .padding(top = 16.dp)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
                 
-                // Sessions list
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                // Back button at the top left
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 8.dp)
                 ) {
-                    items(sessions) { session ->
-                        SessionCard(session = session)
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            RangeSelectionControls(
+                selectedRange = selectedRange,
+                onRangeSelected = { viewModel.selectRange(it) },
+                onPreviousRange = { viewModel.navigateToPreviousRange() },
+                onNextRange = { viewModel.navigateToNextRange() }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            if (sessions.isEmpty()) {
+                // Show empty state
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No completed sessions in selected range",
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                // Show chart and sessions list
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Bar chart
+                    SessionBarChart(
+                        sessions = sessions,
+                        selectedRange = selectedRange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Sessions list
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(sessions) { session ->
+                            SessionCard(session = session)
+                        }
                     }
                 }
             }

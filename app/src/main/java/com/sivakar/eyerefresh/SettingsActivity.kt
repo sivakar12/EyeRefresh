@@ -17,6 +17,7 @@ import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
@@ -25,7 +26,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.tooling.preview.Preview
 import com.sivakar.eyerefresh.core.Config
-import com.sivakar.eyerefresh.ui.components.EyeRefreshHeader
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,124 +48,150 @@ fun SettingsScreen() {
     val context = LocalContext.current
     var config by remember { mutableStateOf(Config.loadFromPreferences(context)) }
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-    ) {
-        // Header with app title and screen title
-        EyeRefreshHeader(
-            title = "Settings",
-            onBackClick = { (context as? ComponentActivity)?.finish() }
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Reminder interval setting
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+    Scaffold(
+        topBar = {
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
+                // Title at the top center
                 Text(
-                    text = "Reminder Interval",
-                    fontSize = 18.sp,
+                    text = "Settings",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 16.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                ReminderIntervalPills(
-                    currentValue = config.reminderIntervalMs,
-                    onValueChange = { newValue ->
-                        val newConfig = config.copy(reminderIntervalMs = newValue)
-                        config = newConfig
-                        Config.saveToPreferences(context, newConfig)
-                    }
-                )
+                
+                // Back button at the top left
+                IconButton(
+                    onClick = { (context as? ComponentActivity)?.finish() },
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(top = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Break duration setting
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+            // Reminder interval setting
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text(
-                    text = "Break Duration",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                BreakDurationPills(
-                    currentValue = config.breakDurationMs,
-                    onValueChange = { newValue ->
-                        val newConfig = config.copy(breakDurationMs = newValue)
-                        config = newConfig
-                        Config.saveToPreferences(context, newConfig)
-                    }
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Reminder Interval",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ReminderIntervalPills(
+                        currentValue = config.reminderIntervalMs,
+                        onValueChange = { newValue ->
+                            val newConfig = config.copy(reminderIntervalMs = newValue)
+                            config = newConfig
+                            Config.saveToPreferences(context, newConfig)
+                        }
+                    )
+                }
             }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Snooze duration setting
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Break duration setting
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Text(
-                    text = "Snooze Duration",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                SnoozeDurationPills(
-                    currentValue = config.snoozeDurationMs,
-                    onValueChange = { newValue ->
-                        val newConfig = config.copy(snoozeDurationMs = newValue)
-                        config = newConfig
-                        Config.saveToPreferences(context, newConfig)
-                    }
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Break Duration",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    BreakDurationPills(
+                        currentValue = config.breakDurationMs,
+                        onValueChange = { newValue ->
+                            val newConfig = config.copy(breakDurationMs = newValue)
+                            config = newConfig
+                            Config.saveToPreferences(context, newConfig)
+                        }
+                    )
+                }
             }
-        }
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        // Reset to defaults button
-        OutlinedButton(
-            onClick = {
-                val defaultConfig = Config.getDefault()
-                config = defaultConfig
-                Config.saveToPreferences(context, defaultConfig)
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Reset to Defaults")
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        // Done button
-        Button(
-            onClick = { (context as? ComponentActivity)?.finish() },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Done")
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Snooze duration setting
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Snooze Duration",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SnoozeDurationPills(
+                        currentValue = config.snoozeDurationMs,
+                        onValueChange = { newValue ->
+                            val newConfig = config.copy(snoozeDurationMs = newValue)
+                            config = newConfig
+                            Config.saveToPreferences(context, newConfig)
+                        }
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Reset to defaults button
+            OutlinedButton(
+                onClick = {
+                    val defaultConfig = Config.getDefault()
+                    config = defaultConfig
+                    Config.saveToPreferences(context, defaultConfig)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Reset to Defaults")
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Done button
+            Button(
+                onClick = { (context as? ComponentActivity)?.finish() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Done")
+            }
         }
     }
 }
