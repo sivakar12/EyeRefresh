@@ -315,7 +315,11 @@ private fun formatRangeDisplay(range: Range): String {
 fun SessionCard(session: CompletedSession) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Box(
             modifier = Modifier
@@ -350,10 +354,6 @@ fun SessionBarChart(
     if (selectedRange == null || sessions.isEmpty()) {
         Box(
             modifier = modifier
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
-                    shape = MaterialTheme.shapes.medium
-                )
                 .clip(MaterialTheme.shapes.medium),
             contentAlignment = Alignment.Center
         ) {
@@ -379,7 +379,11 @@ fun SessionBarChart(
 
     Card(
         modifier = modifier,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
