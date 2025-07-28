@@ -14,5 +14,11 @@
 .cxx
 local.properties
 .idea/deploymentTargetDropDown.xml
+.idea/deploymentTargetSelector.xml
 .idea/gradle.xml
 .idea/misc.xml
+
+# Release artifacts
+app/release/
+*.aab
+*.apk
