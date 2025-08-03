@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh.ui
+package com.sivakar.eyerefresh
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -13,13 +13,15 @@ import com.sivakar.eyerefresh.core.AppEvent
 import com.sivakar.eyerefresh.core.AppState
 import com.sivakar.eyerefresh.core.Config
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.delay
 
 @Composable
-fun HomeScreen(
-    appState: AppState,
-    onEvent: (AppEvent) -> Unit
-) {
+fun MainScreen() {
+    val mainViewModel: MainViewModel = viewModel()
+    val appState by mainViewModel.appState.collectAsState()
+    
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -31,12 +33,12 @@ fun HomeScreen(
                 .weight(1f),
             contentAlignment = Alignment.Center
         ) {
-            when (appState) {
-                is AppState.Paused -> PausedStateScreen(onEvent)
-                is AppState.TimeLeftForNextRefresh -> ScheduledStateScreen(appState, onEvent)
-                is AppState.RefreshCanStart -> RefreshCanStartStateScreen(onEvent)
-                is AppState.RefreshHappening -> RefreshStateScreen(appState, onEvent)
-                is AppState.WaitingForRefreshAcknowledgement -> WaitingForAcknowledgementStateScreen(onEvent)
+            when (val state = appState) {
+                is AppState.Paused -> PausedStateScreen(mainViewModel::onEvent)
+                is AppState.TimeLeftForNextRefresh -> ScheduledStateScreen(state, mainViewModel::onEvent)
+                is AppState.RefreshCanStart -> RefreshCanStartStateScreen(mainViewModel::onEvent)
+                is AppState.RefreshHappening -> RefreshStateScreen(state, mainViewModel::onEvent)
+                is AppState.WaitingForRefreshAcknowledgement -> WaitingForAcknowledgementStateScreen(mainViewModel::onEvent)
             }
         }
     }
@@ -129,7 +131,7 @@ fun WaitingForAcknowledgementStateScreen(onEvent: (AppEvent) -> Unit) {
     )
 }
 
-// Shared components for HomeScreen
+// Shared components for MainScreen
 @Composable
 fun CenteredContent(
     title: String,

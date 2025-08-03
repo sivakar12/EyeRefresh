@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh.ui
+package com.sivakar.eyerefresh
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.systemBarsPadding
 
 data class OnboardingStep(
     val title: String,
@@ -77,41 +78,9 @@ fun OnboardingScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .systemBarsPadding()
             .padding(24.dp)
     ) {
-        // Progress indicator
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Step ${currentStep + 1} of ${steps.size}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                repeat(steps.size) { index ->
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (index <= currentStep) 
-                                    MaterialTheme.colorScheme.primary 
-                                else 
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                            )
-                    )
-                }
-            }
-        }
-
         // Content area
         Box(
             modifier = Modifier
@@ -218,19 +187,32 @@ fun OnboardingScreen(
             }
         }
 
-        // Skip button
-        if (currentStep < steps.size - 1) {
-            TextButton(
-                onClick = onComplete,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
+        // Progress indicator
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    "Skip Onboarding",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                repeat(steps.size) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (index <= currentStep) 
+                                    MaterialTheme.colorScheme.primary 
+                                else 
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                            )
+                    )
+                }
             }
         }
+
     }
 } 

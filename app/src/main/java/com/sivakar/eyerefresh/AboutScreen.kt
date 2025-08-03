@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh.ui
+package com.sivakar.eyerefresh
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

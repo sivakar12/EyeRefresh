@@ -14,7 +14,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.sivakar.eyerefresh.database.AppDatabase
-import com.sivakar.eyerefresh.workers.HealthCheckWorker
+import com.sivakar.eyerefresh.HealthCheckWorker
 import com.sivakar.eyerefresh.database.EventDao
 import com.sivakar.eyerefresh.database.EventEntity
 import com.sivakar.eyerefresh.core.AppEvent

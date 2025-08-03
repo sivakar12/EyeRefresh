@@ -1,4 +1,4 @@
-package com.sivakar.eyerefresh
+package com.sivakar.eyerefresh.settings
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

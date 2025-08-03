@@ -1,29 +1,43 @@
-package com.sivakar.eyerefresh.ui
+package com.sivakar.eyerefresh.settings
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sivakar.eyerefresh.core.Config
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.tooling.preview.Preview
+import com.sivakar.eyerefresh.core.Config
 import com.sivakar.eyerefresh.R
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sivakar.eyerefresh.SettingsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
     val settingsViewModel: SettingsViewModel = viewModel()
     val config by settingsViewModel.config.collectAsState()
+    val context = LocalContext.current
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
         // Reminder interval setting
         Card(
@@ -40,7 +54,7 @@ fun SettingsScreen() {
                 Text(
                     text = "Reminder Interval",
                     fontSize = 18.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -70,7 +84,7 @@ fun SettingsScreen() {
                 Text(
                     text = "Break Duration",
                     fontSize = 18.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -100,7 +114,7 @@ fun SettingsScreen() {
                 Text(
                     text = "Snooze Duration",
                     fontSize = 18.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -238,6 +252,19 @@ fun SnoozeDurationPills(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            SettingsScreen()
         }
     }
 } 

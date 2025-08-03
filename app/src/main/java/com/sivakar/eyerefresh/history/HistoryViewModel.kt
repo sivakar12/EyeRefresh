@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flatMapLatest
+
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
@@ -34,6 +35,8 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
             getSessionsFromEvents(events)
         }
     }
+    
+
     
     private fun getSessionsFromEvents(allEvents: List<EventEntity>): List<CompletedSession> {
         Log.d("HistoryViewModel", "Processing ${allEvents.size} events")
