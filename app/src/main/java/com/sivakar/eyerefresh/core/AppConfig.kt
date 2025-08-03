@@ -21,6 +21,17 @@ object AppConfig {
     const val REFRESH_COMPLETE_TEXT = "Your 20-second refresh is done!"
     const val NEXT_REMINDER_TITLE = "Next Reminder"
     const val NEXT_REMINDER_TEXT = "Next reminder scheduled in 20 minutes."
+    
+    // Onboarding preference functions
+    fun markOnboardingCompleted(context: Context) {
+        val prefs = context.getSharedPreferences("EyeRefreshConfig", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("onboarding_completed", true).apply()
+    }
+    
+    fun shouldShowOnboarding(context: Context): Boolean {
+        val prefs = context.getSharedPreferences("EyeRefreshConfig", Context.MODE_PRIVATE)
+        return !prefs.getBoolean("onboarding_completed", false)
+    }
 }
 
 data class Config(

@@ -1,151 +1,90 @@
-package com.sivakar.eyerefresh.history
+package com.sivakar.eyerefresh.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sivakar.eyerefresh.history.CompletedSession
 import com.sivakar.eyerefresh.history.Range
-import com.sivakar.eyerefresh.ui.theme.EyeRefreshTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sivakar.eyerefresh.history.HistoryViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.text.style.TextAlign
-
-class HistoryActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            EyeRefreshTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    HistoryScreen(
-                        onBackClick = { finish() }
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
-fun HistoryScreen(onBackClick: () -> Unit) {
-    val viewModel: HistoryViewModel = viewModel()
-    val sessions by viewModel.completedSessions.collectAsState(initial = emptyList())
-    val selectedRange by viewModel.selectedRange.collectAsState()
-    
-    Scaffold(
-        topBar = {
+fun HistoryScreen() {
+    val historyViewModel: HistoryViewModel = viewModel()
+    val sessions by historyViewModel.completedSessions.collectAsState(initial = emptyList())
+    val selectedRange by historyViewModel.selectedRange.collectAsState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        RangeSelectionControls(
+            selectedRange = selectedRange,
+            onRangeSelected = { historyViewModel.selectRange(it) },
+            onPreviousRange = { historyViewModel.navigateToPreviousRange() },
+            onNextRange = { historyViewModel.navigateToNextRange() }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (sessions.isEmpty()) {
+            // Show empty state
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
             ) {
-                // Title at the top center
                 Text(
-                    text = "Session History",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp)
+                    text = "No completed sessions in selected range",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
-                // Back button at the top left
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(top = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
             }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            RangeSelectionControls(
-                selectedRange = selectedRange,
-                onRangeSelected = { viewModel.selectRange(it) },
-                onPreviousRange = { viewModel.navigateToPreviousRange() },
-                onNextRange = { viewModel.navigateToNextRange() }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            if (sessions.isEmpty()) {
-                // Show empty state
-                Box(
+        } else {
+            // Show chart and sessions list
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                // Bar chart
+                SessionBarChart(
+                    sessions = sessions,
+                    selectedRange = selectedRange,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Sessions list
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "No completed sessions in selected range",
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            } else {
-                // Show chart and sessions list
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    // Bar chart
-                    SessionBarChart(
-                        sessions = sessions,
-                        selectedRange = selectedRange,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    // Sessions list
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(sessions) { session ->
-                            SessionCard(session = session)
-                        }
+                    items(sessions) { session ->
+                        SessionCard(session = session)
                     }
                 }
             }
@@ -229,7 +168,7 @@ fun RangeSelectionControls(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                     border = BorderStroke(
                         width = 2.dp,
-                        color = if (isSelected) Color(0xFF4CAF50) /* Green */ else Color.LightGray
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                     )
                 ) {
                     Text(
@@ -272,45 +211,6 @@ fun RangeSelectionControls(
     }
 }
 
-private fun getCurrentDayRange(): Range.Day {
-    val now = LocalDateTime.now()
-    return Range.Day(now.dayOfMonth, now.monthValue, now.year)
-}
-
-private fun formatRangeDisplay(range: Range): String {
-    return when (range) {
-        is Range.Day -> {
-            val date = LocalDate.of(range.year, range.month, range.day)
-            val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
-            date.format(formatter)
-        }
-        is Range.Week -> {
-            val firstDayOfMonth = LocalDate.of(range.year, range.month, 1)
-            val firstDayOfFirstWeek = firstDayOfMonth.minusDays(
-                firstDayOfMonth.dayOfWeek.value.toLong() - 1
-            )
-            val startOfTargetWeek = firstDayOfFirstWeek.plusDays((range.weekNumber - 1) * 7L)
-            val endOfTargetWeek = startOfTargetWeek.plusDays(6)
-            val formatter = DateTimeFormatter.ofPattern("MMM d")
-            val startStr = startOfTargetWeek.format(formatter)
-            val endStr = endOfTargetWeek.format(formatter)
-            val yearStr = endOfTargetWeek.year
-            "$startStr - $endStr, $yearStr"
-        }
-        is Range.Month -> {
-            val date = LocalDate.of(range.year, range.month, 1)
-            val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
-            date.format(formatter)
-        }
-        is Range.Year -> {
-            range.year.toString()
-        }
-        else -> {
-            "Today"
-        }
-    }
-}
-
 @Composable
 fun SessionCard(session: CompletedSession) {
     Card(
@@ -336,14 +236,6 @@ fun SessionCard(session: CompletedSession) {
         }
     }
 }
-
-
-
-private fun formatTimestamp(timestamp: Long): String {
-    val date = Date(timestamp)
-    val formatter = SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault())
-    return formatter.format(date)
-} 
 
 @Composable
 fun SessionBarChart(
@@ -474,6 +366,52 @@ fun SessionBarChart(
             }
         }
     }
+}
+
+// Utility functions
+private fun getCurrentDayRange(): Range.Day {
+    val now = LocalDateTime.now()
+    return Range.Day(now.dayOfMonth, now.monthValue, now.year)
+}
+
+private fun formatRangeDisplay(range: Range): String {
+    return when (range) {
+        is Range.Day -> {
+            val date = LocalDate.of(range.year, range.month, range.day)
+            val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
+            date.format(formatter)
+        }
+        is Range.Week -> {
+            val firstDayOfMonth = LocalDate.of(range.year, range.month, 1)
+            val firstDayOfFirstWeek = firstDayOfMonth.minusDays(
+                firstDayOfMonth.dayOfWeek.value.toLong() - 1
+            )
+            val startOfTargetWeek = firstDayOfFirstWeek.plusDays((range.weekNumber - 1) * 7L)
+            val endOfTargetWeek = startOfTargetWeek.plusDays(6)
+            val formatter = DateTimeFormatter.ofPattern("MMM d")
+            val startStr = startOfTargetWeek.format(formatter)
+            val endStr = endOfTargetWeek.format(formatter)
+            val yearStr = endOfTargetWeek.year
+            "$startStr - $endStr, $yearStr"
+        }
+        is Range.Month -> {
+            val date = LocalDate.of(range.year, range.month, 1)
+            val formatter = DateTimeFormatter.ofPattern("MMMM yyyy")
+            date.format(formatter)
+        }
+        is Range.Year -> {
+            range.year.toString()
+        }
+        else -> {
+            "Today"
+        }
+    }
+}
+
+private fun formatTimestamp(timestamp: Long): String {
+    val date = Date(timestamp)
+    val formatter = SimpleDateFormat("MMM dd, yyyy HH:mm:ss", Locale.getDefault())
+    return formatter.format(date)
 }
 
 private fun formatSubsectionLabel(subsection: Range, selectedRange: Range?): String {
